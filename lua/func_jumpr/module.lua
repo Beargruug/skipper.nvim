@@ -1,3 +1,4 @@
+-- TODO: regex of doom adjust async naming and line jump
 local M = {}
 
 local parsers = require("nvim-treesitter.parsers")
@@ -57,18 +58,23 @@ function M.get_functions()
           local current_line = total_lines_before_script + i
 
           -- Match normal functions
-          for func_name in line:gmatch("function%s+(%w+)") do
+          for func_name in line:gmatch("function%s+([%w_]+)") do
             table.insert(functions, { name = func_name, line = current_line })
           end
 
           -- Match arrow functions
-          for func_name in line:gmatch("(%w+)%s*%(([^)]*)%)%s*=>") do
-            print(func_name)
+          for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*%b()") do
+            table.insert(functions, { name = func_name, line = current_line })
+          end
+          for func_name in line:gmatch("([%w_]+)%s*%(([^)]*)%)%s*=>") do
             table.insert(functions, { name = func_name, line = current_line })
           end
 
           -- Match async arrow functions
-          for func_name in line:gmatch("async%s*(%w+)%s*%(([^)]*)%)%s*=>") do
+          for func_name in line:gmatch("const%s+async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
+            table.insert(functions, { name = func_name, line = current_line })
+          end
+          for func_name in line:gmatch("async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
             table.insert(functions, { name = func_name, line = current_line })
           end
         end
