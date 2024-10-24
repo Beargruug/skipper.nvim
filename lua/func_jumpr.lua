@@ -1,11 +1,9 @@
 -- main module file
-local module = require("func_jumpr.module")
+local func_jumpr = require("func_jumpr.module")
 
 ---@class Config
 ---@field opt string Your config option
-local config = {
-  opt = "Hello!",
-}
+local config = {}
 
 ---@class MyModule
 local M = {}
@@ -20,8 +18,20 @@ M.setup = function(args)
   M.config = vim.tbl_deep_extend("force", M.config, args or {})
 end
 
-M.hello = function()
-  return module.my_first_function(M.config.opt)
+M.show_functions = function()
+  return func_jumpr.show_functions_window()
+end
+
+M.show_functions_telescope = function()
+  return func_jumpr.show_functions_telescope()
+end
+
+M.get_functions = function()
+  return func_jumpr.get_functions()
+end
+
+M.jump_to_function = function()
+  return func_jumpr.jump_to_function()
 end
 
 return M
