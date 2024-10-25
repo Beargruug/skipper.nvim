@@ -85,9 +85,11 @@ function M.jump_to_function_by_name()
         if line_content then
           if
             line_content:find("function%s+" .. function_word .. "%s*%(")
+            or line_content:find("export%s+const%s+" .. function_word .. "%s*=")
             or line_content:find("const%s+" .. function_word .. "%s*=")
             or line_content:find(function_word .. "%s*%(([^)]*)%)%s*=>")
             or line_content:find("async%s+" .. function_word .. "%s*%(([^)]*)%)%s*=>")
+            or line_content:find("export%s+async%s+" .. function_word .. "%s*%(([^)]*)%)%s*=>")
           then
             -- Move the cursor to the found line
             vim.api.nvim_win_set_cursor(0, { line_number, 0 }) -- line_number is 1-based
@@ -109,11 +111,17 @@ function M.handle_vue_filetype(node, functions)
       -- Split the raw text into lines
       for line in raw_text:gmatch("[^\r\n]+") do
         -- Match normal functions
+        for func_name in line:gmatch("export%s+function%s+([%w_]+)") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
         for func_name in line:gmatch("function%s+([%w_]+)") do
           table.insert(functions, { name = func_name, line = "none" })
         end
 
         -- Match arrow functions
+        for func_name in line:gmatch("export%s+const%s+([%w_]+)%s*=%s*%b()") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
         for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*%b()") do
           table.insert(functions, { name = func_name, line = "none" })
         end
@@ -122,6 +130,9 @@ function M.handle_vue_filetype(node, functions)
         end
 
         -- Match async arrow functions
+        for func_name in line:gmatch("export%s+const%s+async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
         for func_name in line:gmatch("const%s+async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
           table.insert(functions, { name = func_name, line = "none" })
         end
