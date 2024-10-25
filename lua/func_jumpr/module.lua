@@ -58,6 +58,21 @@ function M.get_functions()
   return functions
 end
 
+local function jump_to_function_definition(line_content, function_word)
+  return line_content:find("function%s+" .. function_word .. "%s*%b()")
+    or line_content:find("export%s+function%s+" .. function_word .. "%s*%b()")
+    or line_content:find("const%s+" .. function_word .. "%s*=%s*%b()")
+    or line_content:find("export%s+const%s+" .. function_word .. "%s*=%s*%b()")
+    or line_content:find("async%s+" .. function_word .. "%s*%b()")
+    or line_content:find("export%s+async%s+" .. function_word .. "%s*%b()")
+    or line_content:find("const%s+" .. function_word .. "%s*=%s*async%s*%b()")
+    or line_content:find("export%s+const%s+" .. function_word .. "%s*=%s*async%s*%b()")
+    or line_content:find("const%s+" .. function_word .. "%s*=%s*computed%s*%s*%b()")
+    or line_content:find("export%s+const%s+" .. function_word .. "%s*=%s*computed%s*%s*%b()")
+    or line_content:find("const%s+" .. function_word .. "%s*=%s*computed%s*%s*%b%((.-)%s*%)")
+    or line_content:find("export%s+const%s+" .. function_word .. "%s*=%s*computed%s*%s*%b%((.-)%s*%)")
+end
+
 function M.jump_to_function_by_name()
   local buf = vim.api.nvim_get_current_buf()
   local functions = vim.api.nvim_buf_get_var(buf, "functions")
@@ -78,24 +93,13 @@ function M.jump_to_function_by_name()
       -- Get the total number of lines in the buffer
       local total_lines = vim.api.nvim_buf_line_count(original_buf)
       -- Search for the function name in the original buffer
-      for line_number = 1, total_lines do
-        local line_content = vim.api.nvim_buf_get_lines(original_buf, line_number - 1, line_number, false)[1] -- Get the line
-
-        -- Check for function declarations
-        if line_content then
-          if
-            line_content:find("function%s+" .. function_word .. "%s*%(")
-            or line_content:find("export%s+const%s+" .. function_word .. "%s*=")
-            or line_content:find("const%s+" .. function_word .. "%s*=")
-            or line_content:find(function_word .. "%s*%(([^)]*)%)%s*=>")
-            or line_content:find("async%s+" .. function_word .. "%s*%(([^)]*)%)%s*=>")
-            or line_content:find("export%s+async%s+" .. function_word .. "%s*%(([^)]*)%)%s*=>")
-          then
-            -- Move the cursor to the found line
-            vim.api.nvim_win_set_cursor(0, { line_number, 0 }) -- line_number is 1-based
-            vim.cmd("normal! zz") -- Center the line
-            return
-          end
+      for line_num = 1, total_lines do
+        local line_content = vim.api.nvim_buf_get_lines(original_buf, line_num - 1, line_num, false)[1]
+        if jump_to_function_definition(line_content, function_word) then
+          -- Set the cursor to the start of the function
+          vim.api.nvim_win_set_cursor(0, { line_num, 0 }) -- line_num is 1-based
+          vim.cmd("normal! zz") -- Center the line
+          return
         end
       end
     end
@@ -110,11 +114,11 @@ function M.handle_vue_filetype(node, functions)
       local raw_text = vim.treesitter.get_node_text(script_node, 0)
       -- Split the raw text into lines
       for line in raw_text:gmatch("[^\r\n]+") do
-        -- Match normal functions
-        for func_name in line:gmatch("export%s+function%s+([%w_]+)") do
+        -- Match standard function declarations
+        for func_name in line:gmatch("export%s+function%s+([%w_]+)%s*%b()") do
           table.insert(functions, { name = func_name, line = "none" })
         end
-        for func_name in line:gmatch("function%s+([%w_]+)") do
+        for func_name in line:gmatch("function%s+([%w_]+)%s*%b()") do
           table.insert(functions, { name = func_name, line = "none" })
         end
 
@@ -125,19 +129,30 @@ function M.handle_vue_filetype(node, functions)
         for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*%b()") do
           table.insert(functions, { name = func_name, line = "none" })
         end
-        for func_name in line:gmatch("([%w_]+)%s*%(([^)]*)%)%s*=>") do
+
+        -- Match async arrow functions
+        for func_name in line:gmatch("export%s+const%s+([%w_]+)%s*=%s*async%s*%b()") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
+        for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*async%s*%b()") do
           table.insert(functions, { name = func_name, line = "none" })
         end
 
-        -- Match async arrow functions
-        for func_name in line:gmatch("export%s+const%s+async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
+        -- TODO: Match computed functions
+        -- Match computed functions
+        for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*computed%s*%b()") do
           table.insert(functions, { name = func_name, line = "none" })
         end
-        for func_name in line:gmatch("const%s+async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
+        -- Match multiline computed functions
+        for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*computed%s*%s*%b%((.-)%s*%)") do
           table.insert(functions, { name = func_name, line = "none" })
         end
-        for func_name in line:gmatch("async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
-          table.insert(functions, { name = func_name, line = "none" })
+
+        -- Match any lifecycle hooks
+        for func_name in line:gmatch("([%w_]+)%s*%b()") do
+          if func_name:match("^on[%u][%w_]*$") then
+            table.insert(functions, { name = func_name, line = "none" })
+          end
         end
       end
     end
@@ -158,7 +173,7 @@ function M.show_functions_window()
 
   -- Prepare lines for the window
   for _, func in ipairs(functions) do
-    table.insert(lines, func.name .. " (line " .. func.line .. ")")
+    table.insert(lines, func.name)
   end
 
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
