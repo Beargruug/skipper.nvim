@@ -1,5 +1,5 @@
 -- main module file
-local func_jumpr = require("func_jumpr.module")
+local func_jumper = require("func_jumper.module")
 
 ---@class Config
 ---@field opt string Your config option
@@ -19,15 +19,15 @@ M.setup = function(args)
 end
 
 M.show_functions = function()
-  return func_jumpr.show_functions_window()
+  return func_jumper.show_functions_window()
 end
 
 M.get_functions = function()
-  return func_jumpr.get_functions()
+  return func_jumper.get_functions()
 end
 
 M.jump_to_function = function()
-  return func_jumpr.jump_to_function()
+  return func_jumper.jump_to_function()
 end
 
 return M

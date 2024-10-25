@@ -200,7 +200,7 @@ function M.show_functions_window()
     buf,
     "n",
     "<cr>",
-    ':lua require("func_jumpr").jump_to_function()<cr>',
+    ':lua require("func_jumper").jump_to_function()<cr>',
     { noremap = true, silent = true }
   )
 end
