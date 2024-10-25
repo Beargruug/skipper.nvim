@@ -180,12 +180,11 @@ function M.show_functions_window()
 
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
-    width = 110,
+    width = 70,
     title = "Func_Jumper",
     height = math.min(#lines, 20), -- Limit height to 20 lines
     col = math.floor((vim.o.columns - 50) / 2),
     row = math.floor((vim.o.lines - 20) / 2),
-    style = "minimal",
     border = "single",
   })
 
