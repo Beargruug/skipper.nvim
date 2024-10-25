@@ -1,6 +1,6 @@
-# func-jumpr.nvim
+# func-jumper.nvim
 
-`func-jumpr.nvim` is a Neovim plugin designed to enhance your coding workflow by allowing you to quickly jump to function declarations within your code. It leverages Neovim's built-in functionality for effective code parsing, making navigation seamless and intuitive.
+`func-jumper.nvim` is a Neovim plugin designed to enhance your coding workflow by allowing you to quickly jump to function declarations within your code. It leverages Neovim's built-in functionality for effective code parsing, making navigation seamless and intuitive.
 
 ## Features
 
@@ -10,14 +10,14 @@
 
 ## Installation
 
-You can install `func-jumpr.nvim` using your favorite package manager.
+You can install `func-jumper.nvim` using your favorite package manager.
 
 ### Using Lazy.nvim
-To install `func-jumpr.nvim` with [Lazy.nvim](https://github.com/folke/lazy.nvim), add the following line to your Lazy configuration:
+To install `func-jumper.nvim` with [Lazy.nvim](https://github.com/folke/lazy.nvim), add the following line to your Lazy configuration:
 
 ```lua
 {
-  'beargruug/func-jumpr.nvim',
+  'beargruug/func-jumper.nvim',
 }
 ```
 
@@ -33,7 +33,7 @@ You can configure key bindings to make navigation even easier. For example:
 vim.api.nvim_set_keymap('n', '<leader>cf', ':ShowFunctions<CR>', { noremap = true, silent = true })
 ```
 # Supported Languages
-Currently, `func-jumpr.nvim` supports:
+Currently, `func-jumper.nvim` supports:
 
 - Vue
 - lua
