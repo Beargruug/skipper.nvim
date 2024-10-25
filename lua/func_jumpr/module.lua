@@ -22,6 +22,7 @@ function M.get_functions()
   local root = tree[1]:root() -- Get the root node of the AST
 
   file_type = vim.bo.filetype
+  local is_supported = file_type == "vue" or file_type == "typescript" or file_type == "javascript"
 
   local children = root:named_children()
 
@@ -31,11 +32,11 @@ function M.get_functions()
   end
 
   for _, node in ipairs(children) do
-    if file_type == "vue" then
+    if is_supported then
       M.handle_vue_filetype(node, functions)
     end
     if
-      file_type ~= "vue"
+      not is_supported
       and (
         node:type() == "function_declaration"
         or node:type() == "function_expression"
