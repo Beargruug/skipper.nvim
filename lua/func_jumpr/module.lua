@@ -1,5 +1,5 @@
--- TODO: regex of doom adjust async naming and line jump
 local M = {}
+local file_type = {}
 
 local parsers = require("nvim-treesitter.parsers")
 
@@ -21,8 +21,9 @@ function M.get_functions()
 
   local root = tree[1]:root() -- Get the root node of the AST
 
+  file_type = vim.bo.filetype
+
   local children = root:named_children()
-  local total_lines_before_script = 0 -- vue specific
 
   if not children then
     print("No children found for root node.")
@@ -30,62 +31,18 @@ function M.get_functions()
   end
 
   for _, node in ipairs(children) do
-    -- check for vue files  and extract functions from script tag
-    if node:type() == "template_element" then
-      local raw_text = vim.treesitter.get_node_text(node, 0)
-      -- Count lines in the template
-      for _ in raw_text:gmatch("[^\r\n]+") do
-        total_lines_before_script = total_lines_before_script + 1
-      end
-    elseif node:type() == "style_element" then
-      local raw_text = vim.treesitter.get_node_text(node, 0)
-      -- Count lines in the style
-      for _ in raw_text:gmatch("[^\r\n]+") do
-        total_lines_before_script = total_lines_before_script + 1
-      end
-    elseif node:type() == "script_element" then
-      local script_children = node:named_children()
-      for _, script_node in ipairs(script_children) do
-        local raw_text = vim.treesitter.get_node_text(script_node, 0)
-        -- Split the raw text into lines
-        local lines = {}
-        for line in raw_text:gmatch("[^\r\n]+") do
-          table.insert(lines, line)
-        end
-        -- Calculate line numbers
-
-        for i, line in ipairs(lines) do
-          local current_line = total_lines_before_script + i
-
-          -- Match normal functions
-          for func_name in line:gmatch("function%s+([%w_]+)") do
-            table.insert(functions, { name = func_name, line = current_line })
-          end
-
-          -- Match arrow functions
-          for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*%b()") do
-            table.insert(functions, { name = func_name, line = current_line })
-          end
-          for func_name in line:gmatch("([%w_]+)%s*%(([^)]*)%)%s*=>") do
-            table.insert(functions, { name = func_name, line = current_line })
-          end
-
-          -- Match async arrow functions
-          for func_name in line:gmatch("const%s+async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
-            table.insert(functions, { name = func_name, line = current_line })
-          end
-          for func_name in line:gmatch("async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
-            table.insert(functions, { name = func_name, line = current_line })
-          end
-        end
-      end
+    if file_type == "vue" then
+      M.handle_vue_filetype(node, functions)
     end
     if
-      node:type() == "function_declaration"
-      or node:type() == "function_expression"
-      or node:type() == "arrow_function"
-      or node:type() == "method_definition"
-      or node:type() == "async_function_declaration"
+      file_type ~= "vue"
+      and (
+        node:type() == "function_declaration"
+        or node:type() == "function_expression"
+        or node:type() == "arrow_function"
+        or node:type() == "method_definition"
+        or node:type() == "async_function_declaration"
+      )
     then
       local name_node = node:field("name")[1]
 
@@ -100,50 +57,79 @@ function M.get_functions()
   return functions
 end
 
--- Function to open a Telescope picker
-function M.show_functions_telescope()
-  local functions = M.get_functions()
-  if #functions == 0 then
-    print("No functions found!")
-    return
-  end
+function M.jump_to_function_by_name()
+  local buf = vim.api.nvim_get_current_buf()
+  local functions = vim.api.nvim_buf_get_var(buf, "functions")
+  local original_buf = vim.api.nvim_buf_get_var(buf, "original_buf")
+  local line = vim.fn.line(".") -- Get current line in the functions window
 
-  local items = {}
+  -- TODO: improve this
+  local function_name = vim.api.nvim_buf_get_lines(buf, line - 1, line, false)[1]
+  local function_word = function_name:match("^(%S+)")
+
   for _, func in ipairs(functions) do
-    table.insert(items, { func.name, func.line })
-  end
+    if func.name == function_word then
+      -- Close the plugin window first
+      local current_win = vim.api.nvim_get_current_win()
+      vim.api.nvim_win_close(current_win, true)
 
-  require("telescope.pickers")
-    .new({}, {
-      prompt_title = "Functions",
-      finder = require("telescope.finders").new_table({
-        results = items,
-        entry_maker = function(entry)
-          return {
-            value = entry,
-            display = entry[1],
-            ordinal = entry[1],
-          }
-        end,
-      }),
-      sorter = require("telescope.sorters").get_generic_fuzzy_sorter(),
-      attach_mappings = function(prompt_bufnr, map)
-        local function open_function()
-          local selection = require("telescope.actions.state").get_selected_entry()
-          if selection then
-            vim.api.nvim_win_set_cursor(0, { selection.value[2], 0 })
-            vim.cmd("normal! zz")
+      vim.api.nvim_set_current_buf(original_buf)
+      -- Get the total number of lines in the buffer
+      local total_lines = vim.api.nvim_buf_line_count(original_buf)
+      -- Search for the function name in the original buffer
+      for line_number = 1, total_lines do
+        local line_content = vim.api.nvim_buf_get_lines(original_buf, line_number - 1, line_number, false)[1] -- Get the line
+
+        -- Check for function declarations
+        if line_content then
+          if
+            line_content:find("function%s+" .. function_word .. "%s*%(")
+            or line_content:find("const%s+" .. function_word .. "%s*=")
+            or line_content:find(function_word .. "%s*%(([^)]*)%)%s*=>")
+            or line_content:find("async%s+" .. function_word .. "%s*%(([^)]*)%)%s*=>")
+          then
+            -- Move the cursor to the found line
+            vim.api.nvim_win_set_cursor(0, { line_number, 0 }) -- line_number is 1-based
+            vim.cmd("normal! zz") -- Center the line
+            return
           end
-          require("telescope.actions").close(prompt_bufnr)
+        end
+      end
+    end
+  end
+  print("Function not found: " .. line)
+end
+
+function M.handle_vue_filetype(node, functions)
+  if node:type() == "script_element" then
+    local script_children = node:named_children()
+    for _, script_node in ipairs(script_children) do
+      local raw_text = vim.treesitter.get_node_text(script_node, 0)
+      -- Split the raw text into lines
+      for line in raw_text:gmatch("[^\r\n]+") do
+        -- Match normal functions
+        for func_name in line:gmatch("function%s+([%w_]+)") do
+          table.insert(functions, { name = func_name, line = "none" })
         end
 
-        map("i", "<CR>", open_function)
-        map("n", "<CR>", open_function)
+        -- Match arrow functions
+        for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*%b()") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
+        for func_name in line:gmatch("([%w_]+)%s*%(([^)]*)%)%s*=>") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
 
-        return true
-      end,
-    })
-    :find()
+        -- Match async arrow functions
+        for func_name in line:gmatch("const%s+async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
+        for func_name in line:gmatch("async%s+([%w_]+)%s*%(([^)]*)%)%s*=>") do
+          table.insert(functions, { name = func_name, line = "none" })
+        end
+      end
+    end
+  end
 end
 
 -- Function to create a window showing the functions
@@ -194,6 +180,11 @@ end
 
 -- Function to jump to the selected function
 function M.jump_to_function()
+  if file_type == "vue" then
+    M.jump_to_function_by_name()
+    return
+  end
+
   local buf = vim.api.nvim_get_current_buf()
   local functions = vim.api.nvim_buf_get_var(buf, "functions")
   local original_buf = vim.api.nvim_buf_get_var(buf, "original_buf") -- Get original buffer ID
@@ -228,4 +219,4 @@ function M.jump_to_function()
   vim.api.nvim_win_close(0, true)
 end
 
-return M
+return M, file_type

@@ -22,10 +22,6 @@ M.show_functions = function()
   return func_jumpr.show_functions_window()
 end
 
-M.show_functions_telescope = function()
-  return func_jumpr.show_functions_telescope()
-end
-
 M.get_functions = function()
   return func_jumpr.get_functions()
 end
