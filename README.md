@@ -1,47 +1,48 @@
-# A Neovim Plugin Template
+# func-jumpr.nvim
 
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ellisonleao/nvim-plugin-template/lint-test.yml?branch=main&style=for-the-badge)
-![Lua](https://img.shields.io/badge/Made%20with%20Lua-blueviolet.svg?style=for-the-badge&logo=lua)
+`func-jumpr.nvim` is a Neovim plugin designed to enhance your coding workflow by allowing you to quickly jump to function declarations within your code. It leverages Neovim's built-in functionality for effective code parsing, making navigation seamless and intuitive.
 
-A template repository for Neovim plugins.
+## Features
 
-## Using it
+- **Function Navigation**: Easily navigate to function declarations with a simple command.
+- **Support for Multiple Languages**: Currently supports languages like Lua and Vue. (Note: Ruby and some other languages are not yet supported.)
+- **Integration with Telescope**: Integration coming soon.
 
-Via `gh`:
+## Installation
 
+You can install `func-jumpr.nvim` using your favorite package manager.
+
+### Using Lazy.nvim
+To install `func-jumpr.nvim` with [Lazy.nvim](https://github.com/folke/lazy.nvim), add the following line to your Lazy configuration:
+
+```lua
+{
+  'beargruug/func-jumpr.nvim',
+}
 ```
-$ gh repo create my-plugin -p ellisonleao/nvim-plugin-template
+
+## Usage
+1. Open a file in a supported language.
+2. Use the command `:ShowFunctions` to invoke the function navigation feature.
+3. Select a function from the list or use the search feature to find it quickly.
+
+## Key Bindings
+You can configure key bindings to make navigation even easier. For example:
+
+```lua
+vim.api.nvim_set_keymap('n', '<leader>cf', ':ShowFunctions<CR>', { noremap = true, silent = true })
 ```
+# Supported Languages
+Currently, `func-jumpr.nvim` supports:
 
-Via github web page:
+- Vue
+- lua
 
-Click on `Use this template`
+## Note
+Some languages, such as Ruby or Typescript, are not yet supported. Contributions to extend support for additional languages are welcome!
 
-![](https://docs.github.com/assets/cb-36544/images/help/repository/use-this-template-button.png)
+## Contributing
+Contributions are welcome! If you’d like to contribute, please fork the repository and submit a pull request. Be sure to adhere to the project's coding standards and guidelines.
 
-## Features and structure
-
-- 100% Lua
-- Github actions for:
-  - running tests using [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) and [busted](https://olivinelabs.com/busted/)
-  - check for formatting errors (Stylua)
-  - vimdocs autogeneration from README.md file
-  - luarocks release (LUAROCKS_API_KEY secret configuration required)
-
-### Plugin structure
-
-```
-.
-├── lua
-│   ├── plugin_name
-│   │   └── module.lua
-│   └── plugin_name.lua
-├── Makefile
-├── plugin
-│   └── plugin_name.lua
-├── README.md
-├── tests
-│   ├── minimal_init.lua
-│   └── plugin_name
-│       └── plugin_name_spec.lua
-```
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
