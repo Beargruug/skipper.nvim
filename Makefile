@@ -1,11 +1,18 @@
-TESTS_INIT=tests/minimal_init.lua
-TESTS_DIR=tests/
+fmt:
+	echo "===> Formatting"
+	stylua lua/ --config-path=.stylua.toml
 
-.PHONY: test
+lint:
+	echo "===> Linting"
+	luacheck lua/ --globals vim
 
 test:
-	@nvim \
-		--headless \
-		--noplugin \
-		-u ${TESTS_INIT} \
-		-c "PlenaryBustedDirectory ${TESTS_DIR} { minimal_init = '${TESTS_INIT}' }"
+	echo "===> Testing"
+	nvim --headless --noplugin -u scripts/tests/minimal.vim \
+        -c "PlenaryBustedDirectory lua/func-jumper/test/ {minimal_init = 'scripts/tests/minimal.vim'}"
+
+clean:
+	echo "===> Cleaning"
+	rm /tmp/lua_*
+
+pr-ready: fmt lint test
