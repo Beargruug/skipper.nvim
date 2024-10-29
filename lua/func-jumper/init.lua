@@ -1,5 +1,6 @@
 local M = {}
 local file_type = {}
+local _config = {}
 
 local parsers = require("nvim-treesitter.parsers")
 
@@ -291,6 +292,10 @@ function M.jump_to_function()
 
     -- Close the window after jumping
     vim.api.nvim_win_close(0, true)
+end
+
+function M.setup(config)
+    _config = config
 end
 
 return M, file_type
