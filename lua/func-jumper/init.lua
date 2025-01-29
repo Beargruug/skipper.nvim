@@ -347,6 +347,10 @@ end
 
 function M.setup(config)
     config = config or {}
+
+    vim.api.nvim_create_user_command("ShowFunctionsWindow", function()
+        M.show_functions_window()
+    end, {})
 end
 
 M.setup()
