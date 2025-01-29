@@ -87,9 +87,9 @@ function M.get_functions()
         if file_type == "vue" then
             M.handle_vue_filetype(node, functions)
         end
-        -- if is_typescript then
-        --     M.handle_typescript_filetype(node, functions)
-        -- end
+        if is_typescript then
+            M.handle_typescript_filetype(node, functions)
+        end
         if
             node:type() == "function_declaration"
             or node:type() == "function_expression"
