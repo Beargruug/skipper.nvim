@@ -1,8 +1,59 @@
 local M = {}
 local file_type = {}
--- local _config = {}
 
 local parsers = require("nvim-treesitter.parsers")
+
+function M.handle_typescript_filetype(node, functions)
+    if node:type() == "export_statement" then
+        local export_children = node:named_children()
+        for _, export_node in ipairs(export_children) do
+            if export_node:type() == "function_declaration" then
+                local name_node = export_node:field("name")[1]
+                if name_node then
+                    local func_name = vim.treesitter.get_node_text(name_node, 0)
+                    local line_number =
+                        vim.treesitter.get_node_range(export_node)
+                    table.insert(
+                        functions,
+                        { name = func_name, line = line_number }
+                    )
+                end
+            end
+        end
+    end
+    if node:type() == "function_declaration" then
+        local name_node = node:field("name")[1]
+        if name_node then
+            local func_name = vim.treesitter.get_node_text(name_node, 0)
+            local line_number = vim.treesitter.get_node_range(node)
+            table.insert(functions, { name = func_name, line = line_number })
+        end
+    end
+    if node:type() == "function_expression" then
+        local name_node = node:field("name")[1]
+        if name_node then
+            local func_name = vim.treesitter.get_node_text(name_node, 0)
+            local line_number = vim.treesitter.get_node_range(node)
+            table.insert(functions, { name = func_name, line = line_number })
+        end
+    end
+    if node:type() == "arrow_function" then
+        local name_node = node:field("name")[1]
+        if name_node then
+            local func_name = vim.treesitter.get_node_text(name_node, 0)
+            local line_number = vim.treesitter.get_node_range(node)
+            table.insert(functions, { name = func_name, line = line_number })
+        end
+    end
+    if node:type() == "method_definition" then
+        local name_node = node:field("key")[1]
+        if name_node then
+            local func_name = vim.treesitter.get_node_text(name_node, 0)
+            local line_number = vim.treesitter.get_node_range(node)
+            table.insert(functions, { name = func_name, line = line_number })
+        end
+    end
+end
 
 -- Function to extract functions from the current buffer
 function M.get_functions()
@@ -23,9 +74,7 @@ function M.get_functions()
     local root = tree[1]:root() -- Get the root node of the AST
 
     file_type = vim.bo.filetype
-    local is_supported = file_type == "vue"
-        or file_type == "typescript"
-        or file_type == "javascript"
+    local is_typescript = file_type == "typescript" or file_type == "javascript"
 
     local children = root:named_children()
 
@@ -35,18 +84,18 @@ function M.get_functions()
     end
 
     for _, node in ipairs(children) do
-        if is_supported then
+        if file_type == "vue" then
             M.handle_vue_filetype(node, functions)
         end
+        -- if is_typescript then
+        --     M.handle_typescript_filetype(node, functions)
+        -- end
         if
-            not is_supported
-            and (
-                node:type() == "function_declaration"
-                or node:type() == "function_expression"
-                or node:type() == "arrow_function"
-                or node:type() == "method_definition"
-                or node:type() == "async_function_declaration"
-            )
+            node:type() == "function_declaration"
+            or node:type() == "function_expression"
+            or node:type() == "arrow_function"
+            or node:type() == "method_definition"
+            or node:type() == "async_function_declaration"
         then
             local name_node = node:field("name")[1]
 
@@ -64,7 +113,7 @@ function M.get_functions()
     return functions
 end
 
-local function jump_to_function_definition(line_content, function_word)
+function M.jump_to_function_definition(line_content, function_word)
     return line_content:find("function%s+" .. function_word .. "%s*%b()")
         or line_content:find(
             "export%s+function%s+" .. function_word .. "%s*%b()"
@@ -125,7 +174,9 @@ function M.jump_to_function_by_name()
                     line_num,
                     false
                 )[1]
-                if jump_to_function_definition(line_content, function_word) then
+                if
+                    M.jump_to_function_definition(line_content, function_word)
+                then
                     -- Set the cursor to the start of the function
                     vim.api.nvim_win_set_cursor(0, { line_num, 0 }) -- line_num is 1-based
                     vim.cmd("normal! zz") -- Center the line
@@ -248,7 +299,7 @@ function M.show_functions_window()
         buf,
         "n",
         "<cr>",
-        ':lua require("func_jumper").jump_to_function()<cr>',
+        ':lua require("func-jumper").jump_to_function()<cr>',
         { noremap = true, silent = true }
     )
 end
@@ -278,7 +329,7 @@ function M.jump_to_function()
             for _, win_id in ipairs(vim.api.nvim_list_wins()) do
                 if vim.api.nvim_win_get_buf(win_id) == original_buf then
                     -- Set the cursor in the correct window
-                    vim.api.nvim_win_set_cursor(win_id, { target_line, 0 }) -- Move cursor to target line
+                    vim.api.nvim_win_set_cursor(win_id, { target_line + 1, 0 }) -- Move cursor to target line
                     vim.cmd("normal! zz") -- Center the line
                     break
                 end
@@ -294,8 +345,10 @@ function M.jump_to_function()
     vim.api.nvim_win_close(0, true)
 end
 
-function M.setup(--[[ config ]])
-    -- _config = config
+function M.setup(config)
+    config = config or {}
 end
 
-return M, file_type
+M.setup()
+
+return M

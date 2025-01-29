@@ -1,4 +1,5 @@
 # func-jumper.nvim
+### TODO: make this thing good
 
 `func-jumper.nvim` is a Neovim plugin designed to enhance your coding workflow by allowing you to quickly jump to function declarations within your code. It leverages Neovim's built-in functionality for effective code parsing, making navigation seamless and intuitive.
 
