@@ -19,6 +19,25 @@ function M.handle_typescript_filetype(node, functions)
                     )
                 end
             end
+            if export_node:type() == "lexical_declaration" then
+                for child in export_node:iter_children() do
+                    if child:type() == "variable_declarator" then
+                        local name_node = child:field("name")[1] -- Holt den Namen der Funktion
+                        if name_node then
+                            local func_name =
+                                vim.treesitter.get_node_text(name_node, 0)
+                            local line_number = ({
+                                vim.treesitter.get_node_range(export_node),
+                            })[1]
+
+                            table.insert(
+                                functions,
+                                { name = func_name, line = line_number }
+                            )
+                        end
+                    end
+                end
+            end
         end
     end
     if node:type() == "function_declaration" then
