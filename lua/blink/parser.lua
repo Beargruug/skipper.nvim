@@ -18,6 +18,7 @@ function M.get_functions()
         vue = "blink.filetypes.vue",
         typescript = "blink.filetypes.typescript",
         javascript = "blink.filetypes.typescript",
+        ruby = "blink.filetypes.ruby",
     }
 
     local module = filetype_map[filetype] or default
