@@ -15,13 +15,14 @@ function M.show_functions_window()
 
     local win_opts = require("blink.config").options
 
-    local win = vim.api.nvim_open_win(buf, true, {
+    vim.api.nvim_open_win(buf, true, {
         relative = "editor",
         width = win_opts.win_width,
         height = win_opts.win_height,
         col = math.floor((vim.o.columns - win_opts.win_width) / 2),
         row = math.floor((vim.o.lines - win_opts.win_height) / 2),
         border = win_opts.border,
+        title = "Blink",
     })
 
     local lines = {}
