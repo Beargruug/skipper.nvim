@@ -13,13 +13,16 @@ function M.get_functions()
     local root = tree:root()
     local filetype = vim.bo.filetype
 
-    if filetype == "vue" then
-        require("blink.filetypes.vue").extract_functions(root, functions)
-    elseif filetype == "typescript" or filetype == "javascript" then
-        require("blink.filetypes.typescript").extract_functions(root, functions)
-    else
-        require("blink.filetypes.default").extract_functions(root, functions)
-    end
+    local default = "blink.filetypes.default"
+    local filetype_map = {
+        vue = "blink.filetypes.vue",
+        typescript = "blink.filetypes.typescript",
+        javascript = "blink.filetypes.typescript",
+    }
+
+    local module = filetype_map[filetype] or default
+
+    require(module).extract_functions(root, functions)
 
     return functions
 end
