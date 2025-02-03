@@ -1,7 +1,7 @@
--- jumping to functions
+-- blink to functions
 local M = {}
 
-function M.jump_to_function()
+function M.blink_to_function()
     local buf = vim.api.nvim_get_current_buf()
     local original_buf = vim.api.nvim_buf_get_var(buf, "original_buf") -- Get original buffer ID
     local functions = vim.api.nvim_buf_get_var(buf, "functions")

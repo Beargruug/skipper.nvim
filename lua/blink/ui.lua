@@ -38,7 +38,7 @@ function M.show_functions_window()
         buf,
         "n",
         "<cr>",
-        ':lua require("blink.navigation").jump_to_function()<cr>',
+        ':lua require("blink.navigation").blink_to_function()<cr>',
         { noremap = true, silent = true }
     )
 end

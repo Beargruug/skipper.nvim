@@ -9,7 +9,7 @@ lint:
 # test:
 # 	echo "===> Testing"
 # 	nvim --headless --noplugin -u scripts/tests/minimal.vim \
-#         -c "PlenaryBustedDirectory lua/func-jumper/test/ {minimal_init = 'scripts/tests/minimal.vim'}"
+#         -c "PlenaryBustedDirectory lua/blink/test/ {minimal_init = 'scripts/tests/minimal.vim'}"
 
 clean:
 	echo "===> Cleaning"

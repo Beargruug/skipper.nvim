@@ -1,7 +1,7 @@
 -- vue
 local M = {}
 
-local function jump_to_function_definition(line_content, function_word)
+local function blink_to_function_definition(line_content, function_word)
     return line_content:find("function%s+" .. function_word .. "%s*%b()")
         or line_content:find(
             "export%s+function%s+" .. function_word .. "%s*%b()"
@@ -43,7 +43,7 @@ local function get_line_by_name(function_name)
         local line_content =
             vim.api.nvim_buf_get_lines(buf, line_num, line_num + 1, false)[1]
 
-        if jump_to_function_definition(line_content, function_word) then
+        if blink_to_function_definition(line_content, function_word) then
             return line_num
         end
     end
