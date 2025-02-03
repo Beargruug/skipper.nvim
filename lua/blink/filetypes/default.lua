@@ -7,6 +7,7 @@ function M.extract_functions(root, functions)
             or node:type() == "function_expression"
             or node:type() == "arrow_function"
             or node:type() == "method_definition"
+            or node:type() == "method_declaration"
             or node:type() == "async_function_declaration"
         then
             local name_node = node:field("name")[1]
