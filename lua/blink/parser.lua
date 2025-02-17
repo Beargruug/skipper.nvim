@@ -6,6 +6,8 @@ function M.get_functions()
     local functions = {}
     local parser = parsers.get_parser()
     if not parser then
+        table.insert(functions, { name = "No functions found!" })
+
         return functions
     end
 
@@ -24,6 +26,10 @@ function M.get_functions()
     local module = filetype_map[filetype] or default
 
     require(module).extract_functions(root, functions)
+
+    if #functions == 0 then
+        table.insert(functions, { name = "No functions found!" })
+    end
 
     return functions
 end
