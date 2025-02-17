@@ -13,19 +13,19 @@ A lightweight and efficient Neovim plugin to help you quickly navigate and manag
 
 ## Status
 
-Blink.nvim befindet sich in aktiver Entwicklung und wird stetig verbessert. Feedback, Issue-Meldungen sowie Pull Requests sind immer willkommen.
+Blink.nvim is under active development and is constantly being improved. Feedback, issue reports and pull requests are always welcome.
 
-## Zweck des Plugins
+## Purpose of the plugin
 
-Beim Navigieren zwischen Dateien oder Codeabschnitten verliert man schnell den Überblick oder muss auf lästige, wiederkehrende Tastenkombinationen zurückgreifen. Blink.nvim wurde entwickelt, um:
+When navigating between files or code sections, it’s easy to lose your overview or resort to annoying, repetitive keyboard shortcuts. Blink.nvim was developed to:
 
-- **Schnelles Navigieren:** Mit minimalen Eingaben zu oft genutzten Funktionen zu springen.
-- **Intuitive Steuerung:** Eine einfache Befehlsstruktur, die den Arbeitsfluss nicht unterbricht.
-- **Erweiterbare Funktionalitäten:** Leichte Integrationen und Anpassungen, sodass sich Blink.nvim perfekt in deinen Workflow einfügt.
+- **Fast Navigation:** Jump to frequently used functions with minimal keystrokes.
+- **Intuitive Control:** A simple command structure that doesn’t interrupt your workflow.
+- **Extensible Functionalities:** Easy integrations and customizations so that Blink.nvim fits perfectly into your workflow.
 
 ## Installation
 
-Blink.nvim benötigt Neovim 0.5.0 oder höher. Installiere das Plugin mit deinem bevorzugten Plugin-Manager. Zum Beispiel mit [vim-plug]:
+Blink.nvim requires Neovim 0.5.0 or higher. Install the plugin with your preferred plugin manager. For example, with [vim-plug]:
 
 ```viml
 Plug 'nvim-lua/plenary.nvim'  " Abhängigkeit, falls noch nicht installiert
@@ -34,7 +34,7 @@ Plug 'beargruug/blink.nvim'
 
 ## Add Keybindings
 
-Füge die folgenden Tastenkombinationen zu deiner `init.vim` oder `init.lua` hinzu:
+To use Blink.nvim, add the following keybindings to your `init.vim` or `init.lua`:
 
 ```viml
 vim.keymap.set("n", "<leader>cf", "<cmd>:ShowFunctionsWindow<CR>")
