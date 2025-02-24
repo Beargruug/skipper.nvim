@@ -19,7 +19,6 @@ function M.show_functions_window()
         border = win_opts.border,
         title = "Blink",
         mappings = mappings,
-        store_current_buf = true,
         on_enter = function(buf)
             vim.api.nvim_buf_set_var(buf, "functions", functions)
 
