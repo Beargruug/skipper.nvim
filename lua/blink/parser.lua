@@ -6,7 +6,7 @@ function M.get_functions()
     local functions = {}
     local parser = parsers.get_parser()
     if not parser then
-        table.insert(functions, { name = "No functions found!" })
+        table.insert(functions, { name = "No parser found!" })
 
         return functions
     end

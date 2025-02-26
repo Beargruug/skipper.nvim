@@ -5,6 +5,7 @@ M.options = {
     win_width = 50,
     win_height = 20,
     border = "single",
+    title = "Blink",
 }
 
 function M.set(opts)

@@ -10,7 +10,7 @@ package.loaded["nvim-treesitter.parsers"] = {
 }
 
 describe("UI Component", function()
-    local ui = require("blink.ui")
+    local ui = require("lua.blink.handle_window")
     local p = require("blink.parser")
 
     before_each(function()
@@ -22,7 +22,7 @@ describe("UI Component", function()
     it(
         "should open a window with 'No functions found!' if no functions are found",
         function()
-            ui.show_functions_window()
+            ui.handle_window()
 
             local win = vim.api.nvim_get_current_win()
             assert.is_not_nil(win, "Window should be opened")
@@ -47,7 +47,7 @@ describe("UI Component", function()
                 }
             end
 
-            ui.show_functions_window()
+            ui.handle_window()
 
             local win = vim.api.nvim_get_current_win()
             assert.is_not_nil(win, "Window should be opened")
