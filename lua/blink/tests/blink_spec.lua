@@ -10,7 +10,7 @@ package.loaded["nvim-treesitter.parsers"] = {
 }
 
 describe("UI Component", function()
-    local ui = require("lua.blink.handle_window")
+    local ui = require("blink.handle_window")
     local p = require("blink.parser")
 
     before_each(function()

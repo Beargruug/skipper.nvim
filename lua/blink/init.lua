@@ -3,7 +3,7 @@ local M = {}
 
 M.config = require("blink.config")
 M.parser = require("blink.parser")
-M.ui = require("lua.blink.handle_window")
+M.ui = require("blink.handle_window")
 M.navigation = require("blink.navigation")
 
 function M.setup(opts)

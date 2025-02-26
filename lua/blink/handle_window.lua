@@ -2,7 +2,7 @@ local M = {}
 
 function M.handle_window()
     local functions = require("blink.parser").get_functions()
-    local UI = require("lua.blink.ui")
+    local UI = require("blink.ui")
     local mappings = {}
 
     local errors = {
