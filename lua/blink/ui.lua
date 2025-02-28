@@ -34,8 +34,14 @@ function M.create(opts)
 
     local win = vim.api.nvim_open_win(buf, true, win_opts)
 
-    -- Set default mappings
     vim.keymap.set("n", "<Esc>", function()
+        close(win)
+    end, {
+        buffer = buf,
+        noremap = true,
+        silent = true,
+    })
+    vim.keymap.set("n", "<C-c>", function()
         close(win)
     end, {
         buffer = buf,
