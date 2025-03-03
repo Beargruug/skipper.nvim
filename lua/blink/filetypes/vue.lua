@@ -2,6 +2,10 @@
 local M = {}
 
 local function blink_to_function_definition(line_content, function_word)
+    if not line_content then
+        return
+    end
+
     return line_content:find("function%s+" .. function_word .. "%s*%b()")
         or line_content:find(
             "export%s+function%s+" .. function_word .. "%s*%b()"
