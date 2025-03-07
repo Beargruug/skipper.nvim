@@ -2,8 +2,8 @@ local M = {}
 
 function M.extract_functions(root, functions)
     for _, node in ipairs(root:named_children()) do
-        if node:type() == "class" then -- Klassenknoten finden
-            local body = node:field("body")[1] -- Body-Knoten extrahieren
+        if node:type() == "class" then
+            local body = node:field("body")[1]
             if body then
                 for _, method in ipairs(body:named_children()) do
                     if
