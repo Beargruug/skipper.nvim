@@ -28,7 +28,7 @@ When navigating between files or code sections, it’s easy to lose your overvie
 Blink.nvim requires Neovim 0.5.0 or higher. Install the plugin with your preferred plugin manager. For example, with [vim-plug]:
 
 ```viml
-Plug 'nvim-lua/plenary.nvim'  " Abhängigkeit, falls noch nicht installiert
+Plug 'nvim-lua/plenary.nvim'
 Plug 'beargruug/blink.nvim'
 ```
 
