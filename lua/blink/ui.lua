@@ -48,6 +48,13 @@ function M.create(opts)
         noremap = true,
         silent = true,
     })
+    vim.keymap.set("n", "q", function()
+        close(win)
+    end, {
+        buffer = buf,
+        noremap = true,
+        silent = true,
+    })
     vim.keymap.set("n", "<CR>", function()
         close(win)
     end, {

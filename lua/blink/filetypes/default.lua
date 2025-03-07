@@ -14,11 +14,11 @@ function M.extract_functions(root, functions)
 
             if name_node then
                 local func_name = vim.treesitter.get_node_text(name_node, 0)
-                local line_number = vim.treesitter.get_node_range(node) -- Should be a table
+                local line_number = vim.treesitter.get_node_range(node)
                 table.insert(
                     functions,
                     { name = func_name, line = line_number }
-                ) -- Adjust for expected table format
+                )
             end
         end
     end

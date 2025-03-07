@@ -54,7 +54,6 @@ local function get_line_by_name(function_name)
 end
 
 local function handle_functions(root, functions)
-    -- Durchsuche alle Script-Knoten
     for _, node in ipairs(root:named_children()) do
         if node:type() == "script_element" then
             local raw_text = vim.treesitter.get_node_text(node, 0)

@@ -1,4 +1,3 @@
--- typescript specific functions
 local M = {}
 
 local function handle_functions(node, functions)
@@ -20,7 +19,7 @@ local function handle_functions(node, functions)
             if export_node:type() == "lexical_declaration" then
                 for child in export_node:iter_children() do
                     if child:type() == "variable_declarator" then
-                        local name_node = child:field("name")[1] -- Holt den Namen der Funktion
+                        local name_node = child:field("name")[1]
                         if name_node then
                             local func_name =
                                 vim.treesitter.get_node_text(name_node, 0)
