@@ -1,7 +1,7 @@
 -- vue
 local M = {}
 
-local function blink_to_function_definition(line_content, function_word)
+local function skip_to_function_definition(line_content, function_word)
     if not line_content then
         return
     end
@@ -47,7 +47,7 @@ local function get_line_by_name(function_name)
         local line_content =
             vim.api.nvim_buf_get_lines(buf, line_num, line_num + 1, false)[1]
 
-        if blink_to_function_definition(line_content, function_word) then
+        if skip_to_function_definition(line_content, function_word) then
             return line_num
         end
     end

@@ -15,12 +15,12 @@ function M.get_functions()
     local root = tree:root()
     local filetype = vim.bo.filetype
 
-    local default = "blink.filetypes.default"
+    local default = "skipper.filetypes.default"
     local filetype_map = {
-        vue = "blink.filetypes.vue",
-        typescript = "blink.filetypes.typescript",
-        javascript = "blink.filetypes.typescript",
-        ruby = "blink.filetypes.ruby",
+        vue = "skipper.filetypes.vue",
+        typescript = "skipper.filetypes.typescript",
+        javascript = "skipper.filetypes.typescript",
+        ruby = "skipper.filetypes.ruby",
     }
 
     local module = filetype_map[filetype] or default

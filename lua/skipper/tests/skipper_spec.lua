@@ -10,8 +10,8 @@ package.loaded["nvim-treesitter.parsers"] = {
 }
 
 describe("UI Component", function()
-    local ui = require("blink.handle_window")
-    local p = require("blink.parser")
+    local ui = require("skipper.handle_window")
+    local p = require("skipper.parser")
 
     before_each(function()
         p.get_functions = function()

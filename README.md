@@ -1,6 +1,6 @@
 <div align="center">
 
-# Blink.nvim
+# Skipper.nvim
 
 A lightweight and efficient Neovim plugin to help you quickly navigate and manage your code with minimal keystrokes.
 
@@ -9,32 +9,32 @@ A lightweight and efficient Neovim plugin to help you quickly navigate and manag
 
 </div>
 
-![Blink](blink.jpeg)
+![Skipper](skipper.jpeg)
 
 ## Status
 
-Blink.nvim is under active development and is constantly being improved. Feedback, issue reports and pull requests are always welcome.
+Skipper.nvim is under active development and is constantly being improved. Feedback, issue reports and pull requests are always welcome.
 
 ## Purpose of the plugin
 
-When navigating between files or code sections, it’s easy to lose your overview or resort to annoying, repetitive keyboard shortcuts. Blink.nvim was developed to:
+When navigating between files or code sections, it’s easy to lose your overview or resort to annoying, repetitive keyboard shortcuts. Skipper.nvim was developed to:
 
 - **Fast Navigation:** Jump to frequently used functions with minimal keystrokes.
 - **Intuitive Control:** A simple command structure that doesn’t interrupt your workflow.
-- **Extensible Functionalities:** Easy integrations and customizations so that Blink.nvim fits perfectly into your workflow.
+- **Extensible Functionalities:** Easy integrations and customizations so that Skipper.nvim fits perfectly into your workflow.
 
 ## Installation
 
-Blink.nvim requires Neovim 0.5.0 or higher. Install the plugin with your preferred plugin manager. For example, with [vim-plug]:
+Skipper.nvim requires Neovim 0.5.0 or higher. Install the plugin with your preferred plugin manager. For example, with [vim-plug]:
 
 ```viml
 Plug 'nvim-lua/plenary.nvim'
-Plug 'beargruug/blink.nvim'
+Plug 'beargruug/skipper.nvim'
 ```
 
 ## Add Keybindings
 
-To use Blink.nvim, add the following keybindings to your `init.vim` or `init.lua`:
+To use Skipper.nvim, add the following keybindings to your `init.vim` or `init.lua`:
 
 ```viml
 vim.keymap.set("n", "<leader>cf", "<cmd>:ShowFunctionsWindow<CR>")

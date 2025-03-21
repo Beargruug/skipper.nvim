@@ -1,6 +1,6 @@
 -- main modules for plugin registration
-local blink = require("blink")
+local skipper = require("skipper")
 
 vim.api.nvim_create_user_command("ShowFunctionsWindow", function()
-    blink.show_functions_window()
+    skipper.show_functions_window()
 end, {})

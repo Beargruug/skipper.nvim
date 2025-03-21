@@ -14,7 +14,7 @@ end
 --- Create a new window
 --- @param opts Opts: The options for the window
 function M.create(opts)
-    local config = require("blink.config").options
+    local config = require("skipper.config").options
 
     local win_opts = {
         relative = "editor",

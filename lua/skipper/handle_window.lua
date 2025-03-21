@@ -1,8 +1,8 @@
 local M = {}
 
 function M.handle_window()
-    local functions = require("blink.parser").get_functions()
-    local UI = require("blink.ui")
+    local functions = require("skipper.parser").get_functions()
+    local UI = require("skipper.ui")
     local mappings = {}
 
     local errors = {
@@ -12,7 +12,7 @@ function M.handle_window()
 
     if #functions > 0 and not errors[functions[1].name] then
         mappings["<CR>"] = {
-            command = ':lua require("blink.navigation").blink_to_function()<CR>',
+            command = ':lua require("skipper.navigation").skip_to_function()<CR>',
         }
     end
 

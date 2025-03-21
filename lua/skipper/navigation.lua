@@ -1,6 +1,6 @@
 local M = {}
 
-function M.blink_to_function()
+function M.skip_to_function()
     -- Get current buffer and window
     local current_buf = vim.api.nvim_get_current_buf()
     local current_win = vim.api.nvim_get_current_win()
