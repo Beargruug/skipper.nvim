@@ -11,6 +11,8 @@ A lightweight and efficient Neovim plugin to help you quickly navigate and manag
 
 ![Skipper](skipper.png)
 
+![Demo](skipper_demo.mov)
+
 ## Status
 
 Skipper.nvim is under active development and is constantly being improved. Feedback, issue reports and pull requests are always welcome.
