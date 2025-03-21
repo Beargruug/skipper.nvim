@@ -9,7 +9,7 @@ A lightweight and efficient Neovim plugin to help you quickly navigate and manag
 
 </div>
 
-![Skipper](skipper.jpeg)
+![Skipper](skipper.png)
 
 ## Status
 
