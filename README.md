@@ -2,7 +2,6 @@
 
 # Skipper.nvim
 
-
 A lightweight and efficient Neovim plugin to help you quickly navigate and manage your code with minimal keystrokes.
 
 [![Lua](https://img.shields.io/badge/Lua-blue.svg?style=for-the-badge&logo=lua)](http://www.lua.org)
@@ -11,6 +10,10 @@ A lightweight and efficient Neovim plugin to help you quickly navigate and manag
 </div>
 
 ![Skipper](skipper.png)
+
+## Demo
+
+![Demo](https://github.com/user-attachments/assets/b539c3cb-654c-435e-98ed-11bc93823e1a)
 
 ## Status
 
