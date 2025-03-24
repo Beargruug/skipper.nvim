@@ -2,6 +2,7 @@
 
 # Skipper.nvim
 
+
 A lightweight and efficient Neovim plugin to help you quickly navigate and manage your code with minimal keystrokes.
 
 [![Lua](https://img.shields.io/badge/Lua-blue.svg?style=for-the-badge&logo=lua)](http://www.lua.org)
