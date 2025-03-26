@@ -20,6 +20,8 @@ function M.get_functions()
         vue = "skipper.filetypes.vue",
         typescript = "skipper.filetypes.typescript",
         javascript = "skipper.filetypes.typescript",
+        typescriptreact = "skipper.filetypes.react",
+        javascriptreact = "skipper.filetypes.react",
         ruby = "skipper.filetypes.ruby",
     }
 
