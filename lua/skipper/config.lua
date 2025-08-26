@@ -2,7 +2,7 @@
 local M = {}
 
 M.options = {
-    win_width = 50,
+    win_width = 120,
     win_height = 20,
     border = "single",
     title = "Skipper",
