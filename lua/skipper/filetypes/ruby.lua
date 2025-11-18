@@ -6,7 +6,11 @@ function M.extract_functions(root, functions)
         if node:type() == "module" then
             local b = node:field("body")[1]
             for _, nod in ipairs(b:named_children()) do
-                if nod:type() == "class" or nod:type() == "method" then
+                if
+                    nod:type() == "class"
+                    or nod:type() == "method"
+                    or nod:type() == "singleton_class"
+                then
                     if nod:type() == "method" then
                         local name_node = nod:field("name")[1]
                         if name_node then
