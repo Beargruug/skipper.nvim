@@ -2,7 +2,7 @@
 
 # Skipper.nvim
 
-A lightweight and efficient Neovim plugin to help you quickly navigate and manage your code with minimal keystrokes.
+A lightweight Neovim plugin for fast function navigation using Tree-sitter.
 
 [![Lua](https://img.shields.io/badge/Lua-blue.svg?style=for-the-badge&logo=lua)](http://www.lua.org)
 [![Neovim](https://img.shields.io/badge/Neovim%200.5+-green.svg?style=for-the-badge&logo=neovim)](https://neovim.io)
@@ -15,33 +15,124 @@ A lightweight and efficient Neovim plugin to help you quickly navigate and manag
 
 <https://github.com/user-attachments/assets/b539c3cb-654c-435e-98ed-11bc93823e1a>
 
-## Status
+## Features
 
-Skipper.nvim is under active development and is constantly being improved. Feedback, issue reports and pull requests are always welcome.
+- **Fast function navigation** - Open a popup window listing all functions in the current file
+- **Tree-sitter powered** - Accurate parsing across multiple languages
+- **Jump to definition** - Select a function and instantly jump to its location
+- **Minimal UI** - Clean floating window that doesn't interrupt your workflow
+- **Customizable** - Configure window size, border style, and title
 
-## Purpose of the plugin
+## Supported Languages
 
-When navigating between files or code sections, it’s easy to lose your overview or resort to annoying, repetitive keyboard shortcuts. Skipper.nvim was developed to:
+| Language | File Types |
+|----------|------------|
+| JavaScript | `.js` |
+| TypeScript | `.ts` |
+| React (JSX/TSX) | `.jsx`, `.tsx` |
+| Vue | `.vue` |
+| Ruby | `.rb` |
+| Other | Any language with Tree-sitter support (uses default parser) |
 
-- **Fast Navigation:** Jump to frequently used functions with minimal keystrokes.
-- **Intuitive Control:** A simple command structure that doesn’t interrupt your workflow.
-- **Extensible Functionalities:** Easy integrations and customizations so that Skipper.nvim fits perfectly into your workflow.
+## Requirements
+
+- Neovim >= 0.5.0
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) with parsers installed for your languages
 
 ## Installation
 
-Skipper.nvim requires Neovim 0.5.0 or higher. Install the plugin with your preferred plugin manager. For example, with [vim-plug]:
+### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
-```viml
-Plug 'nvim-lua/plenary.nvim'
+```lua
+{
+    "beargruug/skipper.nvim",
+    dependencies = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+        require("skipper").setup()
+    end,
+}
+```
+
+### [vim-plug](https://github.com/junegunn/vim-plug)
+
+```vim
+Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'beargruug/skipper.nvim'
 ```
 
-## Add Keybindings
+Then add to your config:
 
-To use Skipper.nvim, add the following keybindings to your `init.vim` or `init.lua`:
-
-```viml
-vim.keymap.set("n", "<leader>cf", "<cmd>:ShowFunctionsWindow<CR>")
+```lua
+require("skipper").setup()
 ```
 
+### [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
+```lua
+use {
+    "beargruug/skipper.nvim",
+    requires = { "nvim-treesitter/nvim-treesitter" },
+    config = function()
+        require("skipper").setup()
+    end,
+}
+```
+
+## Configuration
+
+Skipper.nvim comes with sensible defaults, but you can customize it:
+
+```lua
+require("skipper").setup({
+    win_width = 120,   -- Width of the floating window
+    win_height = 20,   -- Height of the floating window
+})
+```
+
+## Usage
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `:ShowFunctionsWindow` | Open the function navigation window |
+
+### Keymaps
+
+Add a keymap to quickly open the function window:
+
+```lua
+vim.keymap.set("n", "<leader>cf", "<cmd>ShowFunctionsWindow<CR>", { desc = "Show functions" })
+```
+
+Or call the Lua API directly:
+
+```lua
+vim.keymap.set("n", "<leader>cf", function()
+    require("skipper").show_functions_window()
+end, { desc = "Show functions" })
+```
+
+### Window Controls
+
+Once the function window is open:
+
+| Key | Action |
+|-----|--------|
+| `j` / `k` | Navigate up/down the function list |
+| `<CR>` | Jump to the selected function |
+| `<Esc>` | Close the window |
+| `q` | Close the window |
+| `<C-c>` | Close the window |
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues and pull requests.
+
+## Status
+
+Skipper.nvim is under active development. Feedback, issue reports, and pull requests are always welcome.
+
+## License
+
+MIT
