@@ -1,10 +1,23 @@
 -- filetype parsers
 local M = {}
-local parsers = require("nvim-treesitter.parsers")
+
+local function get_parser(bufnr)
+    bufnr = bufnr or 0
+
+    local ok, parsers = pcall(require, "nvim-treesitter.parsers")
+
+    if ok and parsers.get_parser then
+        return parsers.get_parser(bufnr)
+    else
+        return vim.treesitter.get_parser(bufnr)
+    end
+end
 
 function M.get_functions()
     local functions = {}
-    local parser = parsers.get_parser()
+    local bufnr = vim.api.nvim_get_current_buf()
+    local parser = get_parser(bufnr)
+
     if not parser then
         table.insert(functions, { name = "No parser found!" })
 
