@@ -2,6 +2,17 @@ local M = {}
 local FAVORITES_SEPARATOR =
     "────────────────────────────────────────"
 
+local HELP_ITEMS = {
+    { key = "<CR>", description = "Jump to function" },
+    { key = "a", description = "Toggle favorite" },
+    { key = "x", description = "Remove favorite (in favorites section)" },
+    { key = "j/k", description = "Move cursor down/up" },
+    { key = "q", description = "Close window" },
+    { key = "<C>-c", description = "Close window" },
+    { key = "<Esc>", description = "Close window" },
+    { key = "?", description = "Toggle this help" },
+}
+
 function M.handle_window()
     local parser = require("skipper.parser")
     local functions = parser.get_functions()
@@ -58,6 +69,7 @@ function M.handle_window()
 
     UI.create({
         mappings = mappings,
+        help_items = HELP_ITEMS,
         handle_content = function(buf)
             vim.api.nvim_buf_set_var(buf, "functions", functions)
             vim.api.nvim_buf_set_var(buf, "all_items", all_items)
