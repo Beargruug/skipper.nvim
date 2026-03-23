@@ -5,13 +5,11 @@
 
 local M = {}
 
---- Close a window
 --- @param win_id number: The window id to close
 local function close(win_id)
     vim.api.nvim_win_close(win_id, true)
 end
 
---- Create a new window
 --- @param opts Opts: The options for the window
 function M.create(opts)
     local config = require("skipper.config").options
