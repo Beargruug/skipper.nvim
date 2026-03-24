@@ -122,8 +122,11 @@ Once the function window is open:
 | `j` / `k` | Navigate up/down the function list |
 | `<CR>` | Jump to the selected function |
 | `<Esc>` | Close the window |
+| `a` | Toggle favorite |
+| `x` | Remove favorite(in favorite section) |
 | `q` | Close the window |
 | `<C-c>` | Close the window |
+| `?` | Toggle help menu |
 
 ## Contributing
 
