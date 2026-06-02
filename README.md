@@ -46,7 +46,6 @@ A lightweight Neovim plugin for fast function navigation using Tree-sitter.
 ```lua
 {
     "beargruug/skipper.nvim",
-    dependencies = { "nvim-treesitter/nvim-treesitter" },
     config = function()
         require("skipper").setup()
     end,
@@ -56,7 +55,6 @@ A lightweight Neovim plugin for fast function navigation using Tree-sitter.
 ### [vim-plug](https://github.com/junegunn/vim-plug)
 
 ```vim
-Plug 'nvim-treesitter/nvim-treesitter'
 Plug 'beargruug/skipper.nvim'
 ```
 
@@ -71,7 +69,6 @@ require("skipper").setup()
 ```lua
 use {
     "beargruug/skipper.nvim",
-    requires = { "nvim-treesitter/nvim-treesitter" },
     config = function()
         require("skipper").setup()
     end,
