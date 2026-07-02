@@ -8,7 +8,7 @@ local HELP_ITEMS = {
     { key = "x", description = "Remove favorite (in favorites section)" },
     { key = "j/k", description = "Move cursor down/up" },
     { key = "q", description = "Close window" },
-    { key = "<C>-c", description = "Close window" },
+    { key = "<C-c", description = "Close window" },
     { key = "<Esc>", description = "Close window" },
     { key = "?", description = "Toggle this help" },
 }
@@ -40,7 +40,8 @@ function M.handle_window()
 
     local all_items = {} -- favorites + separator + functions
     local content = {}
-    local favorites = parser.get_saved_functions()
+    local source_path = vim.api.nvim_buf_get_name(0)
+    local favorites = parser.get_saved_functions(source_path)
     local favorites_count = #favorites
     local separator_line = nil -- Line number of separator (1-indexed in display)
 
@@ -60,7 +61,7 @@ function M.handle_window()
     -- Add all functions
     for _, func in ipairs(functions) do
         local prefix = ""
-        if parser.is_favorite(func) then
+        if parser.is_favorite(func, source_path) then
             prefix = "★ "
         end
         table.insert(content, prefix .. func.name)

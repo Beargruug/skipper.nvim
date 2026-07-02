@@ -27,10 +27,9 @@ function M.get_functions()
 
     local tree = parser:parse()[1]
     local root = tree:root()
-    local filetype = vim.bo.filetype
 
-    local default = "skipper.filetypes.default"
     local filetype_map = {
+        default = "skipper.filetypes.default",
         vue = "skipper.filetypes.vue",
         typescript = "skipper.filetypes.typescript",
         javascript = "skipper.filetypes.typescript",
@@ -39,7 +38,7 @@ function M.get_functions()
         ruby = "skipper.filetypes.ruby",
     }
 
-    local module = filetype_map[filetype] or default
+    local module = filetype_map[vim.bo.filetype] or filetype_map["default"]
 
     require(module).extract_functions(root, functions)
 
