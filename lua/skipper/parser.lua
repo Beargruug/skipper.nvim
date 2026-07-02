@@ -31,11 +31,10 @@ function M.get_functions()
     local filetype_map = {
         default = "skipper.filetypes.default",
         vue = "skipper.filetypes.vue",
-        typescript = "skipper.filetypes.typescript",
-        javascript = "skipper.filetypes.typescript",
-        typescriptreact = "skipper.filetypes.react",
-        javascriptreact = "skipper.filetypes.react",
-        ruby = "skipper.filetypes.ruby",
+        typescript = "skipper.filetypes.jtscript",
+        javascript = "skipper.filetypes.jtscript",
+        typescriptreact = "skipper.filetypes.jtscript",
+        javascriptreact = "skipper.filetypes.jtscript",
     }
 
     local module = filetype_map[vim.bo.filetype] or filetype_map["default"]
@@ -58,12 +57,12 @@ end
 --- @param filepath string|nil: Optional filepath, uses current if nil
 function M.save_function(target, filepath)
     if not target then
-        return
+        return false
     end
 
     filepath = filepath or get_current_filepath()
     if filepath == "" then
-        return
+        return false
     end
 
     if not favorites_by_file[filepath] then
@@ -77,6 +76,7 @@ function M.save_function(target, filepath)
     end
 
     table.insert(favorites_by_file[filepath], target)
+    -- filter out favorite functions from original functions list
     return true
 end
 

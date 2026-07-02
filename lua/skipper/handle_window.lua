@@ -44,6 +44,7 @@ function M.handle_window()
     local favorites = parser.get_saved_functions(source_path)
     local favorites_count = #favorites
     local separator_line = nil -- Line number of separator (1-indexed in display)
+    local config = require("skipper.config").options
 
     -- favorites section
     if favorites_count > 0 then
@@ -60,12 +61,13 @@ function M.handle_window()
 
     -- Add all functions
     for _, func in ipairs(functions) do
-        local prefix = ""
-        if parser.is_favorite(func, source_path) then
-            prefix = "★ "
+        local is_favorite = parser.is_favorite(func, source_path)
+
+        if not (is_favorite and config.filter_favorites) then
+            local prefix = is_favorite and "★ " or ""
+            table.insert(content, prefix .. func.name)
+            table.insert(all_items, { type = "function", data = func })
         end
-        table.insert(content, prefix .. func.name)
-        table.insert(all_items, { type = "function", data = func })
     end
 
     UI.create({

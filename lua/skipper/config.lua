@@ -6,6 +6,7 @@ M.options = {
     win_height = 20,
     border = "single",
     title = "Skipper",
+    filter_favorites = true,
 }
 
 function M.set(opts)

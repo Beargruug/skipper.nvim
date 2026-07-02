@@ -1,9 +1,31 @@
 local M = {}
 
+--- @param buf integer: The buffer number
+--- @param name string: The name of the buffer variable
+--- @return integer|nil: The value of the buffer variable or nil if not found
+local function get_buf_var(buf, name)
+    local ok, value = pcall(vim.api.nvim_buf_get_var, buf, name)
+
+    if not ok then
+        vim.notify(
+            "Buffer variable '" .. name .. "' not found in buffer " .. buf,
+            vim.log.levels.WARN
+        )
+        return nil
+    end
+
+    return value
+end
+
 --- @return table|nil: The item at cursor { type, data } or nil
 local function get_current_item()
     local current_buf = vim.api.nvim_get_current_buf()
-    local all_items = vim.api.nvim_buf_get_var(current_buf, "all_items")
+    local all_items = get_buf_var(current_buf, "all_items")
+
+    if not all_items then
+        return
+    end
+
     local cursor_line = vim.fn.line(".")
 
     return all_items[cursor_line]
@@ -19,7 +41,11 @@ function M.skip_to_function()
     -- Get current buffer and window
     local current_buf = vim.api.nvim_get_current_buf()
     local current_win = vim.api.nvim_get_current_win()
-    local original_buf = vim.api.nvim_buf_get_var(current_buf, "original_buf")
+    local original_buf = get_buf_var(current_buf, "original_buf")
+
+    if not original_buf then
+        return
+    end
 
     local item = get_current_item()
 
@@ -89,6 +115,9 @@ end
 function M.remove_favorite()
     local current_buf = vim.api.nvim_get_current_buf()
     local original_buf = vim.api.nvim_buf_get_var(current_buf, "original_buf")
+    if not original_buf then
+        return
+    end
     local filepath = vim.api.nvim_buf_get_name(original_buf)
 
     local item = get_current_item()
