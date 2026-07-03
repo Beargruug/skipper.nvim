@@ -89,6 +89,9 @@ function M.skip_to_function()
         return
     end
 
+    -- Close preview before closing skipper window
+    require("skipper.preview").close()
+
     vim.api.nvim_win_close(current_win, true)
     vim.api.nvim_set_current_buf(original_buf)
 
