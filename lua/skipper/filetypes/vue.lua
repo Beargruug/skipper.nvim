@@ -38,22 +38,26 @@ local function skip_to_function_definition(line_content, function_word)
         )
 end
 
-local function get_line_by_name(function_name)
+--- Fetch all buffer lines once and build a name->line lookup
+--- @return function: lookup(name) -> line number or nil
+local function build_line_index()
     local buf = vim.api.nvim_get_current_buf()
-    local function_word = function_name:match("^(%S+)")
-    local total_lines = vim.api.nvim_buf_line_count(0)
+    local all_lines = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
 
-    for line_num = 1, total_lines do
-        local line_content =
-            vim.api.nvim_buf_get_lines(buf, line_num, line_num + 1, false)[1]
-
-        if skip_to_function_definition(line_content, function_word) then
-            return line_num
+    return function(function_name)
+        local function_word = function_name:match("^(%S+)")
+        for line_num, line_content in ipairs(all_lines) do
+            if skip_to_function_definition(line_content, function_word) then
+                return line_num - 1
+            end
         end
+        return nil
     end
 end
 
 local function handle_functions(root, functions)
+    local lookup = build_line_index()
+
     for _, node in ipairs(root:named_children()) do
         if node:type() == "script_element" then
             local raw_text = vim.treesitter.get_node_text(node, 0)
@@ -65,13 +69,13 @@ local function handle_functions(root, functions)
                 do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
                 for func_name in line:gmatch("function%s+([%w_]+)%s*%b()") do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
 
@@ -81,13 +85,13 @@ local function handle_functions(root, functions)
                 do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
                 for func_name in line:gmatch("const%s+([%w_]+)%s*=%s*%b()") do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
 
@@ -97,7 +101,7 @@ local function handle_functions(root, functions)
                 do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
                 for func_name in
@@ -105,18 +109,17 @@ local function handle_functions(root, functions)
                 do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
 
-                -- TODO: Match computed functions
                 -- Match computed functions
                 for func_name in
                     line:gmatch("const%s+([%w_]+)%s*=%s*computed%s*%b()")
                 do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
                 -- Match multiline computed functions
@@ -127,7 +130,7 @@ local function handle_functions(root, functions)
                 do
                     table.insert(functions, {
                         name = func_name,
-                        line = get_line_by_name(func_name),
+                        line = lookup(func_name),
                     })
                 end
 
@@ -136,7 +139,7 @@ local function handle_functions(root, functions)
                     if func_name:match("^on[%u][%w_]*$") then
                         table.insert(functions, {
                             name = func_name,
-                            line = get_line_by_name(func_name),
+                            line = lookup(func_name),
                         })
                     end
                 end
