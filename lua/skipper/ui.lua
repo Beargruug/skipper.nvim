@@ -139,9 +139,7 @@ function M.create(opts)
         if pos == "right" then
             col = math.floor((vim.o.columns - config.win_width) / 3)
         elseif pos == "left" then
-            col = math.floor(
-                (vim.o.columns - config.win_width) * 2 / 3
-            )
+            col = math.floor((vim.o.columns - config.win_width) * 2 / 3)
         end
     end
 

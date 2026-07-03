@@ -108,8 +108,7 @@ local function calculate_position(
         -- Fallback to right if it overflows
         if col < 0 then
             col = skipper_col + skipper_width + border_offset + gap
-            local right_available =
-                vim.o.columns - col - border_offset
+            local right_available = vim.o.columns - col - border_offset
             width = math.min(pref_width, right_available)
             width = math.max(width, 30)
         end
@@ -228,8 +227,7 @@ function M.show(original_buf, target_line, skipper_win)
     if preview_win and vim.api.nvim_win_is_valid(preview_win) then
         vim.api.nvim_win_set_config(preview_win, win_opts)
     else
-        preview_win =
-            vim.api.nvim_open_win(preview_buf, false, win_opts)
+        preview_win = vim.api.nvim_open_win(preview_buf, false, win_opts)
     end
 
     -- Highlight the target line within the preview

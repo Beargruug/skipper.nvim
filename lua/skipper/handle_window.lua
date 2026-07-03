@@ -162,12 +162,9 @@ function M.handle_window()
                     skipping = false
 
                     -- Show preview if enabled
-                    if
-                        config.preview and has_valid_functions
-                    then
+                    if config.preview and has_valid_functions then
                         local cursor_line = vim.fn.line(".")
-                        local current_items =
-                            get_buf_var(buf, "all_items")
+                        local current_items = get_buf_var(buf, "all_items")
 
                         if not current_items then
                             preview.close()
@@ -185,11 +182,7 @@ function M.handle_window()
                             return
                         end
 
-                        preview.show(
-                            original_buf,
-                            item.data.line,
-                            skipper_win
-                        )
+                        preview.show(original_buf, item.data.line, skipper_win)
                     end
                 end,
             })
