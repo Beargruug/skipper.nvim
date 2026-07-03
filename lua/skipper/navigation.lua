@@ -32,9 +32,30 @@ local function get_current_item()
 end
 
 local function refresh_window()
-    local current_win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_close(current_win, true)
-    require("skipper.handle_window").handle_window()
+    local current_buf = vim.api.nvim_get_current_buf()
+    local original_buf = get_buf_var(current_buf, "original_buf")
+    if not original_buf then
+        return
+    end
+
+    local cursor_pos = vim.api.nvim_win_get_cursor(0)
+    local filepath = vim.api.nvim_buf_get_name(original_buf)
+    local functions = get_buf_var(current_buf, "functions")
+    if not functions then
+        return
+    end
+
+    local build_content = require("skipper.handle_window").build_content
+    local content, all_items, favorites_count, separator_line =
+        build_content(functions, filepath)
+
+    vim.api.nvim_buf_set_lines(current_buf, 0, -1, false, content)
+    vim.api.nvim_buf_set_var(current_buf, "all_items", all_items)
+    vim.api.nvim_buf_set_var(current_buf, "favorites_count", favorites_count)
+    vim.api.nvim_buf_set_var(current_buf, "separator_line", separator_line)
+
+    local new_row = math.min(cursor_pos[1], #content)
+    vim.api.nvim_win_set_cursor(0, { new_row, 0 })
 end
 
 function M.skip_to_function()
@@ -139,10 +160,6 @@ function M.remove_favorite()
         )
         refresh_window()
     end
-end
-
-function M.add_to_favorite()
-    M.toggle_favorite()
 end
 
 return M
