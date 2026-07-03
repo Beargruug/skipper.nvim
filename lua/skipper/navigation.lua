@@ -50,20 +50,21 @@ function M.skip_to_function()
     local item = get_current_item()
 
     if not item then
-        vim.api.nvim_err_writeln("No item found at current line")
+        vim.notify("No item found at current line", vim.log.levels.WARN)
+
         return
     end
 
     -- skip separator lines
     if item.type == "separator" then
-        vim.api.nvim_err_writeln("Cannot navigate to separator line")
+        vim.notify("Cannot navigate to separator line", vim.log.levels.WARN)
         return
     end
 
     local target = item.data
 
     if not target then
-        vim.api.nvim_err_writeln("No function data found")
+        vim.notify("No function data found", vim.log.levels.WARN)
         return
     end
 
@@ -73,8 +74,9 @@ function M.skip_to_function()
     local line_count = vim.api.nvim_buf_line_count(original_buf)
 
     if target.line > line_count then
-        vim.api.nvim_err_writeln(
-            "Target line " .. target.line .. " is outside buffer bounds"
+        vim.notify(
+            "Target line " .. target.line .. " is outside buffer bounds",
+            vim.log.levels.WARN
         )
         return
     end
