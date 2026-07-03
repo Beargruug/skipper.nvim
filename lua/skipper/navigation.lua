@@ -1,45 +1,96 @@
 local M = {}
 
+--- @param buf integer: The buffer number
+--- @param name string: The name of the buffer variable
+--- @return integer|nil: The value of the buffer variable or nil if not found
+local function get_buf_var(buf, name)
+    local ok, value = pcall(vim.api.nvim_buf_get_var, buf, name)
+
+    if not ok then
+        vim.notify(
+            "Buffer variable '" .. name .. "' not found in buffer " .. buf,
+            vim.log.levels.WARN
+        )
+        return nil
+    end
+
+    return value
+end
+
 --- @return table|nil: The item at cursor { type, data } or nil
 local function get_current_item()
     local current_buf = vim.api.nvim_get_current_buf()
-    local all_items = vim.api.nvim_buf_get_var(current_buf, "all_items")
+    local all_items = get_buf_var(current_buf, "all_items")
+
+    if not all_items then
+        return
+    end
+
     local cursor_line = vim.fn.line(".")
 
     return all_items[cursor_line]
 end
 
 local function refresh_window()
-    local current_win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_close(current_win, true)
-    require("skipper.handle_window").handle_window()
+    local current_buf = vim.api.nvim_get_current_buf()
+    local original_buf = get_buf_var(current_buf, "original_buf")
+    if not original_buf then
+        return
+    end
+
+    local cursor_pos = vim.api.nvim_win_get_cursor(0)
+    local filepath = vim.api.nvim_buf_get_name(original_buf)
+    local functions = get_buf_var(current_buf, "functions")
+    if not functions then
+        return
+    end
+
+    local build_content = require("skipper.handle_window").build_content
+    local content, all_items, favorites_count, separator_line =
+        build_content(functions, filepath)
+
+    vim.api.nvim_buf_set_lines(current_buf, 0, -1, false, content)
+    vim.api.nvim_buf_set_var(current_buf, "all_items", all_items)
+    vim.api.nvim_buf_set_var(current_buf, "favorites_count", favorites_count)
+    vim.api.nvim_buf_set_var(current_buf, "separator_line", separator_line)
+
+    local new_row = math.min(cursor_pos[1], #content)
+    vim.api.nvim_win_set_cursor(0, { new_row, 0 })
 end
 
 function M.skip_to_function()
     -- Get current buffer and window
     local current_buf = vim.api.nvim_get_current_buf()
     local current_win = vim.api.nvim_get_current_win()
-    local original_buf = vim.api.nvim_buf_get_var(current_buf, "original_buf")
+    local original_buf = get_buf_var(current_buf, "original_buf")
+
+    if not original_buf then
+        return
+    end
 
     local item = get_current_item()
 
     if not item then
-        vim.api.nvim_err_writeln("No item found at current line")
+        vim.notify("No item found at current line", vim.log.levels.WARN)
+
         return
     end
 
     -- skip separator lines
     if item.type == "separator" then
-        vim.api.nvim_err_writeln("Cannot navigate to separator line")
+        vim.notify("Cannot navigate to separator line", vim.log.levels.WARN)
         return
     end
 
     local target = item.data
 
     if not target then
-        vim.api.nvim_err_writeln("No function data found")
+        vim.notify("No function data found", vim.log.levels.WARN)
         return
     end
+
+    -- Close preview before closing skipper window
+    require("skipper.preview").close()
 
     vim.api.nvim_win_close(current_win, true)
     vim.api.nvim_set_current_buf(original_buf)
@@ -47,8 +98,9 @@ function M.skip_to_function()
     local line_count = vim.api.nvim_buf_line_count(original_buf)
 
     if target.line > line_count then
-        vim.api.nvim_err_writeln(
-            "Target line " .. target.line .. " is outside buffer bounds"
+        vim.notify(
+            "Target line " .. target.line .. " is outside buffer bounds",
+            vim.log.levels.WARN
         )
         return
     end
@@ -89,6 +141,9 @@ end
 function M.remove_favorite()
     local current_buf = vim.api.nvim_get_current_buf()
     local original_buf = vim.api.nvim_buf_get_var(current_buf, "original_buf")
+    if not original_buf then
+        return
+    end
     local filepath = vim.api.nvim_buf_get_name(original_buf)
 
     local item = get_current_item()
@@ -108,10 +163,6 @@ function M.remove_favorite()
         )
         refresh_window()
     end
-end
-
-function M.add_to_favorite()
-    M.toggle_favorite()
 end
 
 return M

@@ -2,6 +2,7 @@
 --- @class Opts
 --- @field mappings table<string, table<string, string>>
 --- @field handle_content function
+--- @field on_close function|nil: Callback when window is closed
 --- @field help_items table|nil: Array of { key, description } for help display
 
 local M = {}
@@ -130,11 +131,23 @@ end
 function M.create(opts)
     local config = require("skipper.config").options
 
+    local col = math.floor((vim.o.columns - config.win_width) / 2)
+
+    -- Offset skipper window when preview is enabled to make room
+    if config.preview then
+        local pos = config.preview_position or "right"
+        if pos == "right" then
+            col = math.floor((vim.o.columns - config.win_width) / 3)
+        elseif pos == "left" then
+            col = math.floor((vim.o.columns - config.win_width) * 2 / 3)
+        end
+    end
+
     local win_opts = {
         relative = "editor",
         width = config.win_width,
         height = config.win_height,
-        col = math.floor((vim.o.columns - config.win_width) / 2),
+        col = col,
         row = math.floor((vim.o.lines - config.win_height) / 2),
         border = config.border,
         title = config.title,
@@ -151,6 +164,9 @@ function M.create(opts)
 
     local function close_all()
         close_help()
+        if opts.on_close then
+            opts.on_close()
+        end
         close(win)
     end
 

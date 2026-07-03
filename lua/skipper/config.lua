@@ -2,10 +2,15 @@
 local M = {}
 
 M.options = {
-    win_width = 120,
+    win_width = 60,
     win_height = 20,
     border = "single",
     title = "Skipper",
+    filter_favorites = true,
+    preview = true,
+    preview_height = 20,
+    preview_width = 80,
+    preview_position = "right",
 }
 
 function M.set(opts)
