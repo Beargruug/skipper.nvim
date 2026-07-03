@@ -20,19 +20,23 @@ A lightweight Neovim plugin for fast function navigation using Tree-sitter.
 - **Fast function navigation** - Open a popup window listing all functions in the current file
 - **Tree-sitter powered** - Accurate parsing across multiple languages
 - **Jump to definition** - Select a function and instantly jump to its location
+- **Favorites** - Pin frequently used functions to the top of the list
+- **Filter favorites** - Optionally hide favorited functions from the main list
 - **Minimal UI** - Clean floating window that doesn't interrupt your workflow
 - **Customizable** - Configure window size, border style, and title
+- **Generic language support** - Works with any language that has a Tree-sitter parser
 
 ## Supported Languages
 
-| Language | File Types |
-|----------|------------|
-| JavaScript | `.js` |
-| TypeScript | `.ts` |
-| React (JSX/TSX) | `.jsx`, `.tsx` |
-| Vue | `.vue` |
-| Ruby | `.rb` |
-| Other | Any language with Tree-sitter support (uses default parser) |
+| Language | File Types | Extractor |
+|----------|------------|-----------|
+| JavaScript | `.js` | Dedicated (handles exports, arrow functions, object methods) |
+| TypeScript | `.ts` | Dedicated (shared with JS) |
+| React (JSX/TSX) | `.jsx`, `.tsx` | Dedicated (shared with JS) |
+| Vue | `.vue` | Dedicated (SFC support) |
+| All others | Any | Generic (matches any node with "function" or "method" in its type) |
+
+The generic extractor covers Lua, Go, Python, Ruby, Rust, C, Java, and any other language with a Tree-sitter parser installed.
 
 ## Requirements
 
@@ -81,8 +85,11 @@ Skipper.nvim comes with sensible defaults, but you can customize it:
 
 ```lua
 require("skipper").setup({
-    win_width = 120,   -- Width of the floating window
-    win_height = 20,   -- Height of the floating window
+    win_width = 120,        -- Width of the floating window
+    win_height = 20,        -- Height of the floating window
+    border = "single",      -- Border style ("single", "double", "rounded", "none")
+    title = "Skipper",      -- Window title
+    filter_favorites = true, -- Hide favorited functions from the main list
 })
 ```
 
@@ -118,12 +125,20 @@ Once the function window is open:
 |-----|--------|
 | `j` / `k` | Navigate up/down the function list |
 | `<CR>` | Jump to the selected function |
-| `<Esc>` | Close the window |
 | `a` | Toggle favorite |
-| `x` | Remove favorite(in favorite section) |
+| `x` | Remove favorite (in favorites section) |
 | `q` | Close the window |
+| `<Esc>` | Close the window |
 | `<C-c>` | Close the window |
 | `?` | Toggle help menu |
+
+### Favorites
+
+Functions can be pinned as favorites. Favorites appear at the top of the list, separated from the main function list. When `filter_favorites = true` (default), favorited functions are hidden from the main list to avoid duplication.
+
+## Health Check
+
+Run `:checkhealth skipper` to verify your setup. It checks for Tree-sitter availability and installed parsers.
 
 ## Contributing
 
