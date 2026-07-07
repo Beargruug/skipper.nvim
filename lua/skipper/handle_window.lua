@@ -43,6 +43,8 @@ end
 local HELP_ITEMS = {
     { key = "<CR>", description = "Jump to function" },
     { key = "j/k", description = "Move cursor (previews target)" },
+    { key = "/", description = "Filter functions (fuzzy)" },
+    { key = "Up/Down", description = "Select in filter (also C-k/C-j)" },
     { key = "a", description = "Toggle favorite" },
     { key = "x", description = "Remove favorite (in favorites section)" },
     { key = "q", description = "Close window" },
@@ -153,6 +155,17 @@ function M.handle_window()
                 last_direction = -1
                 vim.cmd("normal! k")
             end, { buffer = buf, noremap = true, silent = true })
+
+            -- Fuzzy filter keymap
+            if has_valid_functions then
+                vim.keymap.set("n", "/", function()
+                    require("skipper.filter").activate(buf)
+                end, {
+                    buffer = buf,
+                    noremap = true,
+                    silent = true,
+                })
+            end
 
             -- Skip separator and optionally show preview on cursor move
             vim.api.nvim_create_autocmd("CursorMoved", {
