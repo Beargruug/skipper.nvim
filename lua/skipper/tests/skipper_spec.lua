@@ -154,8 +154,8 @@ describe("Config", function()
 
     it("should have sensible defaults", function()
         assert.is_not_nil(config.options)
-        assert.are.equal(60, config.options.win_width)
-        assert.are.equal(20, config.options.win_height)
+        assert.are.equal(0.3, config.options.win_width)
+        assert.are.equal(0.2, config.options.win_height)
         assert.are.equal("single", config.options.border)
         assert.are.equal("Skipper", config.options.title)
         assert.is_true(config.options.filter_favorites)
@@ -168,18 +168,18 @@ describe("Config", function()
         assert.are.equal(80, config.options.win_width)
         assert.are.equal("MyNav", config.options.title)
         -- Other defaults remain
-        assert.are.equal(20, config.options.win_height)
+        assert.are.equal(0.2, config.options.win_height)
         assert.are.equal("single", config.options.border)
     end)
 
     it("should handle set() with nil gracefully", function()
         config.set(nil)
-        assert.are.equal(60, config.options.win_width)
+        assert.are.equal(0.3, config.options.win_width)
     end)
 
     it("should handle set() with empty table", function()
         config.set({})
-        assert.are.equal(60, config.options.win_width)
+        assert.are.equal(0.3, config.options.win_width)
         assert.are.equal("Skipper", config.options.title)
     end)
 end)
@@ -761,5 +761,482 @@ describe("Config - resolve_size", function()
         -- When total is 12, max_size = 12 - 4 = 8, but min is 10
         -- So min wins (min_size > max_size case)
         assert.are.equal(10, resolve_size(0.5, 12))
+    end)
+end)
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Vue extractor - treesitter-based
+-- ─────────────────────────────────────────────────────────────────────────────
+describe("Vue extractor", function()
+    local vue
+
+    --- Helper: create a mock treesitter node
+    --- @param node_type string
+    --- @param opts table: { children, named_children, fields, text, range }
+    local function make_node(node_type, opts)
+        opts = opts or {}
+        local node = {}
+        node.type = function()
+            return node_type
+        end
+        node.iter_children = function()
+            local children = opts.children or {}
+            local i = 0
+            return function()
+                i = i + 1
+                return children[i]
+            end
+        end
+        node.named_children = function()
+            return opts.named_children or opts.children or {}
+        end
+        node.field = function(_, name)
+            if opts.fields and opts.fields[name] then
+                return opts.fields[name]
+            end
+            return {}
+        end
+        -- Store text/range for vim.treesitter mocks
+        node._text = opts.text or node_type
+        node._range = opts.range or 0
+        return node
+    end
+
+    before_each(function()
+        package.loaded["skipper.filetypes.vue"] = nil
+        package.loaded["skipper.filetypes.utils"] = nil
+
+        -- Mock vim.treesitter functions to use our node metadata
+        _G.vim.treesitter.get_node_text = function(node)
+            return node._text
+        end
+        _G.vim.treesitter.get_node_range = function(node)
+            return node._range
+        end
+    end)
+
+    it("should extract standard function declarations", function()
+        -- Simulate: function myFunc() { ... }
+        local name_node = make_node("identifier", { text = "myFunc" })
+        local func_node = make_node("function_declaration", {
+            fields = { name = { name_node } },
+            children = {},
+            range = 5,
+        })
+
+        -- Root with the function as child
+        local root = make_node("program", { children = { func_node } })
+
+        -- Mock get_parser to return a lang tree with JS injection
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "javascript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(1, #functions)
+        assert.are.equal("myFunc", functions[1].name)
+        assert.are.equal(5, functions[1].line)
+    end)
+
+    it("should extract arrow functions from variable declarations", function()
+        -- Simulate: const handler = () => { ... }
+        local name_node = make_node("identifier", { text = "handler" })
+        local arrow_fn = make_node("arrow_function", { children = {} })
+        local declarator = make_node("variable_declarator", {
+            fields = {
+                name = { name_node },
+                value = { arrow_fn },
+            },
+            children = {},
+            range = 10,
+        })
+        local declaration = make_node("lexical_declaration", {
+            children = { declarator },
+        })
+
+        local root = make_node("program", { children = { declaration } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "typescript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(1, #functions)
+        assert.are.equal("handler", functions[1].name)
+        assert.are.equal(10, functions[1].line)
+    end)
+
+    it("should extract computed() composable wrappers", function()
+        -- Simulate: const fullName = computed(() => { ... })
+        local name_node = make_node("identifier", { text = "fullName" })
+        local callee_node = make_node("identifier", { text = "computed" })
+        local call_expr = make_node("call_expression", {
+            fields = { ["function"] = { callee_node } },
+            children = {},
+        })
+        local declarator = make_node("variable_declarator", {
+            fields = {
+                name = { name_node },
+                value = { call_expr },
+            },
+            children = {},
+            range = 15,
+        })
+        local declaration = make_node("lexical_declaration", {
+            children = { declarator },
+        })
+
+        local root = make_node("program", { children = { declaration } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "typescript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(1, #functions)
+        assert.are.equal("fullName", functions[1].name)
+        assert.are.equal(15, functions[1].line)
+    end)
+
+    it("should extract watch/watchEffect composables", function()
+        -- Simulate: const cleanup = watch(() => { ... })
+        local name_node = make_node("identifier", { text = "cleanup" })
+        local callee_node = make_node("identifier", { text = "watch" })
+        local call_expr = make_node("call_expression", {
+            fields = { ["function"] = { callee_node } },
+            children = {},
+        })
+        local declarator = make_node("variable_declarator", {
+            fields = {
+                name = { name_node },
+                value = { call_expr },
+            },
+            children = {},
+            range = 20,
+        })
+        local declaration = make_node("lexical_declaration", {
+            children = { declarator },
+        })
+
+        local root = make_node("program", { children = { declaration } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "javascript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(1, #functions)
+        assert.are.equal("cleanup", functions[1].name)
+        assert.are.equal(20, functions[1].line)
+    end)
+
+    it("should extract lifecycle hooks (onMounted, etc.)", function()
+        -- Simulate: onMounted(() => { ... })
+        local callee_node = make_node("identifier", { text = "onMounted" })
+        local call_expr = make_node("call_expression", {
+            fields = { ["function"] = { callee_node } },
+            children = {},
+            range = 25,
+        })
+        local expr_stmt = make_node("expression_statement", {
+            children = { call_expr },
+        })
+
+        local root = make_node("program", { children = { expr_stmt } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "typescript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(1, #functions)
+        assert.are.equal("onMounted", functions[1].name)
+        assert.are.equal(25, functions[1].line)
+    end)
+
+    it("should extract onBeforeUnmount lifecycle hook", function()
+        local callee_node =
+            make_node("identifier", { text = "onBeforeUnmount" })
+        local call_expr = make_node("call_expression", {
+            fields = { ["function"] = { callee_node } },
+            children = {},
+            range = 30,
+        })
+        local expr_stmt = make_node("expression_statement", {
+            children = { call_expr },
+        })
+
+        local root = make_node("program", { children = { expr_stmt } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "typescript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(1, #functions)
+        assert.are.equal("onBeforeUnmount", functions[1].name)
+        assert.are.equal(30, functions[1].line)
+    end)
+
+    it("should NOT extract non-lifecycle call expressions", function()
+        -- Simulate: doSomething(() => { ... })  -- not a lifecycle hook
+        local callee_node = make_node("identifier", { text = "doSomething" })
+        local call_expr = make_node("call_expression", {
+            fields = { ["function"] = { callee_node } },
+            children = {},
+            range = 35,
+        })
+        local expr_stmt = make_node("expression_statement", {
+            children = { call_expr },
+        })
+
+        local root = make_node("program", { children = { expr_stmt } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "javascript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(0, #functions)
+    end)
+
+    it("should ignore non-JS language trees (e.g. css)", function()
+        local name_node = make_node("identifier", { text = "shouldIgnore" })
+        local func_node = make_node("function_declaration", {
+            fields = { name = { name_node } },
+            children = {},
+            range = 40,
+        })
+        local root = make_node("program", { children = { func_node } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    -- Only emit a CSS tree, no JS
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "css"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(0, #functions)
+    end)
+
+    it("should fallback to walking root when get_parser fails", function()
+        -- Simulate: function fallbackFn() { ... }
+        local name_node = make_node("identifier", { text = "fallbackFn" })
+        local func_node = make_node("function_declaration", {
+            fields = { name = { name_node } },
+            children = {},
+            range = 45,
+        })
+        local root = make_node("program", { children = { func_node } })
+
+        _G.vim.treesitter.get_parser = function()
+            error("no parser available")
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(1, #functions)
+        assert.are.equal("fallbackFn", functions[1].name)
+        assert.are.equal(45, functions[1].line)
+    end)
+
+    it("should extract multiple functions from a single tree", function()
+        -- Simulate multiple declarations in one script block
+        local name1 = make_node("identifier", { text = "funcA" })
+        local func1 = make_node("function_declaration", {
+            fields = { name = { name1 } },
+            children = {},
+            range = 2,
+        })
+
+        local name2 = make_node("identifier", { text = "funcB" })
+        local arrow = make_node("arrow_function", { children = {} })
+        local decl2 = make_node("variable_declarator", {
+            fields = { name = { name2 }, value = { arrow } },
+            children = {},
+            range = 8,
+        })
+        local lex2 = make_node("lexical_declaration", {
+            children = { decl2 },
+        })
+
+        local callee3 = make_node("identifier", { text = "onUpdated" })
+        local call3 = make_node("call_expression", {
+            fields = { ["function"] = { callee3 } },
+            children = {},
+            range = 14,
+        })
+        local expr3 = make_node("expression_statement", {
+            children = { call3 },
+        })
+
+        local root = make_node("program", { children = { func1, lex2, expr3 } })
+
+        _G.vim.treesitter.get_parser = function()
+            return {
+                for_each_tree = function(_, callback)
+                    local tree = {
+                        root = function()
+                            return root
+                        end,
+                    }
+                    local lang_tree = {
+                        lang = function()
+                            return "typescript"
+                        end,
+                    }
+                    callback(tree, lang_tree)
+                end,
+            }
+        end
+
+        vue = require("skipper.filetypes.vue")
+        local functions = {}
+        vue.extract_functions(root, functions)
+
+        assert.are.equal(3, #functions)
+        assert.are.equal("funcA", functions[1].name)
+        assert.are.equal(2, functions[1].line)
+        assert.are.equal("funcB", functions[2].name)
+        assert.are.equal(8, functions[2].line)
+        assert.are.equal("onUpdated", functions[3].name)
+        assert.are.equal(14, functions[3].line)
     end)
 end)
