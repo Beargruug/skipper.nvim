@@ -129,26 +129,31 @@ end
 
 --- @param opts Opts: The options for the window
 function M.create(opts)
-    local config = require("skipper.config").options
+    local config_mod = require("skipper.config")
+    local config = config_mod.options
+    local resolve_size = config_mod.resolve_size
 
-    local col = math.floor((vim.o.columns - config.win_width) / 2)
+    local width = resolve_size(config.win_width, vim.o.columns)
+    local height = resolve_size(config.win_height, vim.o.lines)
+
+    local col = math.floor((vim.o.columns - width) / 2)
 
     -- Offset skipper window when preview is enabled to make room
     if config.preview then
         local pos = config.preview_position or "right"
         if pos == "right" then
-            col = math.floor((vim.o.columns - config.win_width) / 3)
+            col = math.floor((vim.o.columns - width) / 3)
         elseif pos == "left" then
-            col = math.floor((vim.o.columns - config.win_width) * 2 / 3)
+            col = math.floor((vim.o.columns - width) * 2 / 3)
         end
     end
 
     local win_opts = {
         relative = "editor",
-        width = config.win_width,
-        height = config.win_height,
+        width = width,
+        height = height,
         col = col,
-        row = math.floor((vim.o.lines - config.win_height) / 2),
+        row = math.floor((vim.o.lines - height) / 2),
         border = config.border,
         title = config.title,
         footer = " " .. get_hint_text() .. " ",

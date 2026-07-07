@@ -86,6 +86,34 @@ if not _G.vim then
             return result
         end,
         log = { levels = { WARN = 2, INFO = 1, ERROR = 3 } },
+        validate = function(spec)
+            for name, rule in pairs(spec) do
+                local value = rule[1]
+                local validator = rule[2]
+                local msg = rule[3]
+
+                local ok
+                if type(validator) == "string" then
+                    ok = type(value) == validator
+                    msg = msg or validator
+                elseif type(validator) == "function" then
+                    ok = validator(value)
+                else
+                    ok = false
+                end
+
+                if not ok then
+                    error(
+                        string.format(
+                            "%s: expected %s, got %s",
+                            name,
+                            msg or "valid value",
+                            tostring(value)
+                        )
+                    )
+                end
+            end
+        end,
         treesitter = {
             get_node_text = function()
                 return "mock_func"
@@ -554,5 +582,184 @@ describe("build_content", function()
 
         assert.are.equal(0, favorites_count)
         assert.are.equal(0, separator_line)
+    end)
+end)
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Config - validation
+-- ─────────────────────────────────────────────────────────────────────────────
+describe("Config - validation", function()
+    local config
+
+    before_each(function()
+        package.loaded["skipper.config"] = nil
+        config = require("skipper.config")
+    end)
+
+    it("should reject win_width as string", function()
+        assert.has_error(function()
+            config.set({ win_width = "big" })
+        end)
+    end)
+
+    it("should reject negative win_width", function()
+        assert.has_error(function()
+            config.set({ win_width = -5 })
+        end)
+    end)
+
+    it("should reject win_width = 0", function()
+        assert.has_error(function()
+            config.set({ win_width = 0 })
+        end)
+    end)
+
+    it("should reject win_width fraction > 1", function()
+        assert.has_error(function()
+            config.set({ win_width = 1.5 })
+        end)
+    end)
+
+    it("should reject non-integer win_width >= 1", function()
+        assert.has_error(function()
+            config.set({ win_width = 60.5 })
+        end)
+    end)
+
+    it("should reject win_height as boolean", function()
+        assert.has_error(function()
+            config.set({ win_height = true })
+        end)
+    end)
+
+    it("should reject border as number", function()
+        assert.has_error(function()
+            config.set({ border = 123 })
+        end)
+    end)
+
+    it("should reject invalid preview_position", function()
+        assert.has_error(function()
+            config.set({ preview_position = "diagonal" })
+        end)
+    end)
+
+    it("should reject title as number", function()
+        assert.has_error(function()
+            config.set({ title = 42 })
+        end)
+    end)
+
+    it("should reject filter_favorites as string", function()
+        assert.has_error(function()
+            config.set({ filter_favorites = "yes" })
+        end)
+    end)
+
+    it("should reject preview as string", function()
+        assert.has_error(function()
+            config.set({ preview = "true" })
+        end)
+    end)
+
+    it("should accept valid fractional win_width", function()
+        assert.has_no.errors(function()
+            config.set({ win_width = 0.6 })
+        end)
+        assert.are.equal(0.6, config.options.win_width)
+    end)
+
+    it("should accept valid integer win_width", function()
+        assert.has_no.errors(function()
+            config.set({ win_width = 80 })
+        end)
+        assert.are.equal(80, config.options.win_width)
+    end)
+
+    it("should accept fractional preview_height", function()
+        assert.has_no.errors(function()
+            config.set({ preview_height = 0.3 })
+        end)
+        assert.are.equal(0.3, config.options.preview_height)
+    end)
+
+    it("should accept border as string", function()
+        assert.has_no.errors(function()
+            config.set({ border = "rounded" })
+        end)
+        assert.are.equal("rounded", config.options.border)
+    end)
+
+    it("should accept border as table", function()
+        local custom_border =
+            { "╭", "─", "╮", "│", "╯", "─", "╰", "│" }
+        assert.has_no.errors(function()
+            config.set({ border = custom_border })
+        end)
+        assert.are.same(custom_border, config.options.border)
+    end)
+
+    it("should accept valid preview_position values", function()
+        for _, pos in ipairs({ "top", "bottom", "left", "right" }) do
+            package.loaded["skipper.config"] = nil
+            config = require("skipper.config")
+            assert.has_no.errors(function()
+                config.set({ preview_position = pos })
+            end)
+        end
+    end)
+end)
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Config - resolve_size
+-- ─────────────────────────────────────────────────────────────────────────────
+describe("Config - resolve_size", function()
+    local resolve_size
+
+    before_each(function()
+        package.loaded["skipper.config"] = nil
+        resolve_size = require("skipper.config").resolve_size
+    end)
+
+    it("should convert 0.6 with total=100 to 60", function()
+        assert.are.equal(60, resolve_size(0.6, 100))
+    end)
+
+    it("should convert 0.5 with total=200 to 100", function()
+        assert.are.equal(100, resolve_size(0.5, 200))
+    end)
+
+    it("should convert 0.8 with total=150 to 120", function()
+        assert.are.equal(120, resolve_size(0.8, 150))
+    end)
+
+    it("should pass through integer values as-is", function()
+        assert.are.equal(80, resolve_size(80, 120))
+    end)
+
+    it("should clamp small results to minimum of 10", function()
+        assert.are.equal(10, resolve_size(5, 100))
+    end)
+
+    it("should clamp fractional result to minimum of 10", function()
+        assert.are.equal(10, resolve_size(0.05, 100))
+    end)
+
+    it("should clamp large values to total - 4", function()
+        assert.are.equal(96, resolve_size(200, 100))
+    end)
+
+    it("should clamp large fraction to total - 4", function()
+        assert.are.equal(96, resolve_size(0.99, 100))
+    end)
+
+    it("should handle integer value of 1 as absolute (clamps to 10)", function()
+        assert.are.equal(10, resolve_size(1, 100))
+    end)
+
+    it("should handle very small total gracefully", function()
+        -- When total is 12, max_size = 12 - 4 = 8, but min is 10
+        -- So min wins (min_size > max_size case)
+        assert.are.equal(10, resolve_size(0.5, 12))
     end)
 end)

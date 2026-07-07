@@ -133,14 +133,18 @@ end
 --- @param target_line number: The 0-indexed line to center the preview on
 --- @param skipper_win number: The skipper window to position relative to
 function M.show(original_buf, target_line, skipper_win)
-    local config = require("skipper.config").options
+    local config_mod = require("skipper.config")
+    local config = config_mod.options
+    local resolve_size = config_mod.resolve_size
 
     if not config.preview then
         return
     end
 
-    local preview_height = config.preview_height or 20
-    local preview_width = config.preview_width or 80
+    local preview_height =
+        resolve_size(config.preview_height or 20, vim.o.lines)
+    local preview_width =
+        resolve_size(config.preview_width or 80, vim.o.columns)
     local position = config.preview_position or "right"
     local buf_line_count = vim.api.nvim_buf_line_count(original_buf)
 
