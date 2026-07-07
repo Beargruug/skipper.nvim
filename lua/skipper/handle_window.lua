@@ -51,7 +51,7 @@ local HELP_ITEMS = {
     { key = "?", description = "Toggle this help" },
 }
 
-local function build_content(functions, filepath)
+local function build_content(functions, filepath, status)
     local parser = require("skipper.parser")
     local config = require("skipper.config").options
     local favorites = parser.get_saved_functions(filepath)
@@ -64,7 +64,7 @@ local function build_content(functions, filepath)
     -- favorites section
     if favorites_count > 0 then
         for _, fav in ipairs(favorites) do
-            table.insert(content, "★ " .. fav.name)
+            table.insert(content, "* " .. fav.name)
             table.insert(all_items, { type = "favorite", data = fav })
         end
 
@@ -84,23 +84,29 @@ local function build_content(functions, filepath)
         end
     end
 
+    local status_messages = {
+        no_parser = "No parser found!",
+        empty = "No functions found!",
+    }
+
+    local status_message = status_messages[status]
+    if status_message then
+        table.insert(content, status_message)
+        table.insert(all_items, { type = "status", data = nil })
+    end
+
     return content, all_items, favorites_count, separator_line
 end
 
 function M.handle_window()
     local parser = require("skipper.parser")
-    local functions = parser.get_functions()
+    local functions, status = parser.get_functions()
     local UI = require("skipper.ui")
     local preview = require("skipper.preview")
     local config = require("skipper.config").options
     local mappings = {}
 
-    local errors = {
-        ["No functions found!"] = true,
-        ["No parser found!"] = true,
-    }
-
-    local has_valid_functions = #functions > 0 and not errors[functions[1].name]
+    local has_valid_functions = status == "ok" and #functions > 0
 
     if has_valid_functions then
         mappings["<CR>"] = {
@@ -118,7 +124,7 @@ function M.handle_window()
     local original_buf = vim.api.nvim_get_current_buf()
 
     local content, all_items, favorites_count, separator_line =
-        build_content(functions, source_path)
+        build_content(functions, source_path, status)
 
     UI.create({
         mappings = mappings,

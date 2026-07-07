@@ -29,7 +29,7 @@ local function get_parser(bufnr)
     end
 end
 
--- Cache per buffer: [bufnr] = { tick = n, functions = {...} }
+-- Cache per buffer: [bufnr] = { tick = n, functions = {...}, status = "ok"|"no_parser"|"empty" }
 local functions_cache = {}
 
 function M.get_functions()
@@ -39,15 +39,19 @@ function M.get_functions()
     -- Return cached result if buffer hasn't changed
     local cached = functions_cache[bufnr]
     if cached and cached.tick == tick then
-        return cached.functions
+        return cached.functions, cached.status
     end
 
     local functions = {}
     local parser = get_parser(bufnr)
 
     if not parser then
-        table.insert(functions, { name = "No parser found!" })
-        return functions
+        functions_cache[bufnr] = {
+            tick = tick,
+            functions = functions,
+            status = "no_parser",
+        }
+        return functions, "no_parser"
     end
 
     local tree = parser:parse()[1]
@@ -66,14 +70,16 @@ function M.get_functions()
 
     require(module).extract_functions(root, functions)
 
-    if #functions == 0 then
-        table.insert(functions, { name = "No functions found!" })
-    end
+    local status = #functions == 0 and "empty" or "ok"
 
     -- Cache the result
-    functions_cache[bufnr] = { tick = tick, functions = functions }
+    functions_cache[bufnr] = {
+        tick = tick,
+        functions = functions,
+        status = status,
+    }
 
-    return functions
+    return functions, status
 end
 
 --- @return string: The current file path
