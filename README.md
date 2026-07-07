@@ -20,10 +20,13 @@ A lightweight Neovim plugin for fast function navigation using Tree-sitter.
 - **Fast function navigation** - Open a popup window listing all functions in the current file
 - **Tree-sitter powered** - Accurate parsing across multiple languages
 - **Jump to definition** - Select a function and instantly jump to its location
+- **Fuzzy filter** - Press `/` to fuzzy-search functions (telescope-style prompt with live preview)
 - **Favorites** - Pin frequently used functions to the top of the list
 - **Filter favorites** - Optionally hide favorited functions from the main list
+- **Live preview** - See function code in a floating preview as you navigate
+- **Fractional sizing** - Use percentages (e.g. `0.6` = 60%) for window dimensions that adapt to terminal size
 - **Minimal UI** - Clean floating window that doesn't interrupt your workflow
-- **Customizable** - Configure window size, border style, and title
+- **Customizable** - Configure window size, border style, position, and more
 - **Generic language support** - Works with any language that has a Tree-sitter parser
 
 ## Supported Languages
@@ -33,7 +36,7 @@ A lightweight Neovim plugin for fast function navigation using Tree-sitter.
 | JavaScript | `.js` | Dedicated (handles exports, arrow functions, object methods) |
 | TypeScript | `.ts` | Dedicated (shared with JS) |
 | React (JSX/TSX) | `.jsx`, `.tsx` | Dedicated (shared with JS) |
-| Vue | `.vue` | Dedicated (SFC support) |
+| Vue | `.vue` | Dedicated (SFC support via language injections, includes composables and lifecycle hooks) |
 | All others | Any | Generic (matches any node with "function" or "method" in its type) |
 
 The generic extractor covers Lua, Go, Python, Ruby, Rust, C, Java, and any other language with a Tree-sitter parser installed.
@@ -85,13 +88,26 @@ Skipper.nvim comes with sensible defaults, but you can customize it:
 
 ```lua
 require("skipper").setup({
-    win_width = 120,        -- Width of the floating window
-    win_height = 20,        -- Height of the floating window
-    border = "single",      -- Border style ("single", "double", "rounded", "none")
-    title = "Skipper",      -- Window title
-    filter_favorites = true, -- Hide favorited functions from the main list
+    win_width = 0.3,            -- Width (fraction 0-1 for %, or integer for columns)
+    win_height = 0.2,           -- Height (fraction 0-1 for %, or integer for rows)
+    border = "single",          -- Border style ("single", "double", "rounded", "none", or table)
+    title = "Skipper",          -- Window title
+    filter_favorites = true,    -- Hide favorited functions from the main list
+    preview = true,             -- Show live preview of selected function
+    preview_height = 0.2,       -- Preview window height
+    preview_width = 0.3,        -- Preview window width
+    preview_position = "right", -- Preview position ("top", "bottom", "left", "right")
 })
 ```
+
+### Sizing
+
+Window dimensions support both absolute and fractional values:
+
+- **Fractional** (`0 < value < 1`): Interpreted as a percentage of terminal size. E.g. `win_width = 0.6` means 60% of columns.
+- **Absolute** (`value >= 1`): Used as exact columns/rows. E.g. `win_width = 80` means 80 columns.
+
+All sizes are clamped to a minimum of 10 and maximum of `terminal_size - 4` at window-open time.
 
 ## Usage
 
@@ -125,12 +141,26 @@ Once the function window is open:
 |-----|--------|
 | `j` / `k` | Navigate up/down the function list |
 | `<CR>` | Jump to the selected function |
+| `/` | Open fuzzy filter |
 | `a` | Toggle favorite |
 | `x` | Remove favorite (in favorites section) |
 | `q` | Close the window |
 | `<Esc>` | Close the window |
 | `<C-c>` | Close the window |
 | `?` | Toggle help menu |
+
+### Fuzzy Filter
+
+Press `/` to open a telescope-style filter prompt below the function list. As you type, results are filtered using fuzzy matching and the preview updates live.
+
+| Key | Action |
+|-----|--------|
+| Type text | Filter functions by name |
+| `<Up>` / `<C-k>` | Move selection up |
+| `<Down>` / `<C-j>` | Move selection down |
+| `<CR>` | Jump to selected match |
+| `<Esc>` | Cancel filter, restore full list |
+| `<C-c>` | Cancel filter, restore full list |
 
 ### Favorites
 
